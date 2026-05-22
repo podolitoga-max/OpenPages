@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Финансовое мышление и капитал | Игорь Подольский</title>
+  <meta name="description" content="Стратегическая сессия и трехмесячное наставничество Игоря Подольского по финансовому мышлению, личной стратегии и капитализации.">
+  <style>
+    :root {
+      --ink: #151717;
+      --text: #252b2a;
+      --muted: #65706d;
+      --line: #d9dfdb;
+      --paper: #f7f6f1;
+      --card: #ffffff;
+      --green: #194c3d;
+      --green-2: #286b57;
+      --gold: #b88934;
+      --gold-2: #f1d29a;
+      --red: #7a2f28;
+      --shadow: 0 22px 70px rgba(31, 37, 35, .12);
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--paper);
+      color: var(--text);
+      font-family: Inter, Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.72), rgba(247,246,241,.94) 30%, #f7f6f1 100%),
+        url("https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=2200&q=80") center top / cover fixed;
+    }
+
+    a { color: inherit; }
+
+    .wrap {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(247, 246, 241, .9);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(217, 223, 219, .7);
+    }
+
+    .nav {
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .mark {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(184, 137, 52, .55);
+      background: #101412;
+      color: var(--gold-2);
+      font-size: 13px;
+      font-weight: 900;
+      border-radius: 50%;
+    }
+
+    .navlinks {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .navlinks a {
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      border: 1px solid #14392f;
+      border-radius: 7px;
+      background: var(--green);
+      color: #fff;
+      font-weight: 800;
+      text-decoration: none;
+      box-shadow: 0 12px 30px rgba(25, 76, 61, .22);
+    }
+
+    .button.secondary {
+      background: rgba(255,255,255,.72);
+      color: var(--green);
+      border-color: rgba(25, 76, 61, .28);
+      box-shadow: none;
+    }
+
+    main { overflow: hidden; }
+
+    .hero {
+      min-height: calc(100vh - 68px);
+      display: grid;
+      align-items: center;
+      padding: 70px 0 56px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(340px, .82fr);
+      gap: 38px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 18px;
+      padding: 7px 10px;
+      border: 1px solid rgba(25, 76, 61, .2);
+      border-radius: 999px;
+      background: rgba(255,255,255,.72);
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gold);
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      max-width: 780px;
+      margin-bottom: 20px;
+      color: var(--ink);
+      font-size: clamp(38px, 6vw, 74px);
+      line-height: .95;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 680px;
+      margin-bottom: 28px;
+      color: #37403d;
+      font-size: clamp(18px, 2vw, 23px);
+      line-height: 1.38;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .hero-points {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      max-width: 760px;
+    }
+
+    .point {
+      min-height: 96px;
+      padding: 14px;
+      background: rgba(255,255,255,.82);
+      border: 1px solid rgba(217, 223, 219, .8);
+      border-radius: var(--radius);
+    }
+
+    .point strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--ink);
+      font-size: 18px;
+    }
+
+    .point span {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .diagnostic-panel {
+      position: relative;
+      padding: 22px;
+      border: 1px solid rgba(217, 223, 219, .9);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.88);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 16px;
+    }
+
+    .panel-top span {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .panel-top strong {
+      display: block;
+      margin-top: 5px;
+      color: var(--ink);
+      font-size: 28px;
+    }
+
+    .money-flow {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .flow-row {
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr) 52px;
+      gap: 12px;
+      align-items: center;
+      color: #303836;
+      font-size: 14px;
+    }
+
+    .bar {
+      height: 10px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e9ece8;
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--green), var(--gold));
+    }
+
+    .quote {
+      margin: 0;
+      padding: 14px;
+      border-left: 4px solid var(--gold);
+      background: #f7f2e8;
+      color: #453b28;
+      line-height: 1.45;
+    }
+
+    section {
+      padding: 72px 0;
+      background: var(--paper);
+    }
+
+    section.alt { background: #ffffff; }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, .82fr) minmax(280px, .5fr);
+      gap: 30px;
+      align-items: end;
+      margin-bottom: 28px;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+      color: var(--ink);
+      font-size: clamp(30px, 4vw, 48px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .section-head p,
+    .wide-text {
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      min-height: 180px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--card);
+    }
+
+    .card.dark {
+      background: #111614;
+      color: #fff;
+      border-color: #111614;
+    }
+
+    .card h3 {
+      margin-bottom: 10px;
+      color: inherit;
+      font-size: 22px;
+      line-height: 1.15;
+    }
+
+    .card p,
+    .card li {
+      color: var(--muted);
+      line-height: 1.48;
+    }
+
+    .card.dark p,
+    .card.dark li { color: #cbd3cf; }
+
+    .tag {
+      display: inline-flex;
+      margin-bottom: 14px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      background: #eef3ef;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .card.dark .tag {
+      background: rgba(241, 210, 154, .13);
+      color: var(--gold-2);
+    }
+
+    .steps {
+      display: grid;
+      gap: 12px;
+      counter-reset: step;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 54px minmax(0, 1fr);
+      gap: 16px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .step:before {
+      counter-increment: step;
+      content: counter(step);
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--green);
+      color: #fff;
+      font-weight: 900;
+    }
+
+    .step h3 {
+      margin-bottom: 5px;
+      color: var(--ink);
+      font-size: 21px;
+    }
+
+    .step p {
+      margin-bottom: 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .pricing {
+      display: grid;
+      grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .price-card {
+      padding: 26px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: #fff;
+      box-shadow: 0 16px 50px rgba(31, 37, 35, .08);
+    }
+
+    .price-card.primary {
+      background: #111614;
+      color: #fff;
+      border-color: #111614;
+    }
+
+    .price {
+      margin: 12px 0;
+      color: inherit;
+      font-size: clamp(34px, 5vw, 52px);
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    .price-card p,
+    .price-card li {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .price-card.primary p,
+    .price-card.primary li { color: #cfd8d4; }
+
+    ul {
+      padding-left: 18px;
+      margin: 14px 0 0;
+    }
+
+    li + li { margin-top: 8px; }
+
+    .fit-list {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    .fit {
+      padding: 22px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .fit.no {
+      border-color: rgba(122, 47, 40, .22);
+      background: #fff8f6;
+    }
+
+    .cta {
+      padding: 46px;
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgba(17,22,20,.96), rgba(25,76,61,.94)),
+        url("https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=1800&q=80") center / cover;
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .cta h2 { color: #fff; }
+    .cta p { max-width: 760px; color: #d7dfdc; }
+
+    .footer {
+      padding: 28px 0 42px;
+      color: var(--muted);
+      background: var(--paper);
+      font-size: 14px;
+    }
+
+    .footer .wrap {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+    }
+
+    @media (max-width: 860px) {
+      body { background-attachment: scroll; }
+      .nav { align-items: flex-start; flex-direction: column; padding: 14px 0; }
+      .navlinks { width: 100%; overflow-x: auto; padding-bottom: 3px; }
+      .hero { padding-top: 42px; }
+      .hero-grid,
+      .section-head,
+      .pricing,
+      .fit-list {
+        grid-template-columns: 1fr;
+      }
+      .hero-points,
+      .grid-3,
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+      .diagnostic-panel { order: -1; }
+      .flow-row { grid-template-columns: 96px minmax(0, 1fr) 42px; }
+      section { padding: 54px 0; }
+      .cta { padding: 28px; }
+      .footer .wrap { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap nav">
+      <div class="brand"><span class="mark">IP</span><span>Финансовое мышление и капитал</span></div>
+      <nav class="navlinks" aria-label="Навигация">
+        <a href="#session">Сессия</a>
+        <a href="#mentoring">Наставничество</a>
+        <a href="#price">Стоимость</a>
+        <a href="#apply">Заявка</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div>
+          <p class="eyebrow"><span class="dot"></span> Авторская работа Игоря Подольского</p>
+          <h1>Личная стратегия денег вместо хаоса в доходах, расходах и решениях</h1>
+          <p class="lead">Стратегическая сессия и трехмесячное наставничество для людей, у которых доход есть, но капитал не растет, деньги расползаются, а финансовые решения принимаются рывками.</p>
+          <div class="hero-actions">
+            <a class="button" href="#apply">Записаться на стратегическую сессию</a>
+            <a class="button secondary" href="#price">Посмотреть формат</a>
+          </div>
+          <div class="hero-points">
+            <div class="point"><strong>20 000 ₽</strong><span>стратегическая сессия 2-3 часа</span></div>
+            <div class="point"><strong>300 000 ₽</strong><span>3 месяца наставничества после отбора</span></div>
+            <div class="point"><strong>1 на 1</strong><span>без массового курса и общего шаблона</span></div>
+          </div>
+        </div>
+
+        <aside class="diagnostic-panel" aria-label="Диагностика финансовой системы">
+          <div class="panel-top">
+            <div><span>Фокус</span><strong>Точка А</strong></div>
+            <div><span>Цель</span><strong>Капитал</strong></div>
+          </div>
+          <div class="money-flow">
+            <div class="flow-row"><span>Доход</span><div class="bar"><i style="width: 82%"></i></div><b>82</b></div>
+            <div class="flow-row"><span>Расходы</span><div class="bar"><i style="width: 74%"></i></div><b>74</b></div>
+            <div class="flow-row"><span>Резерв</span><div class="bar"><i style="width: 36%"></i></div><b>36</b></div>
+            <div class="flow-row"><span>Капитал</span><div class="bar"><i style="width: 24%"></i></div><b>24</b></div>
+            <div class="flow-row"><span>Стратегия</span><div class="bar"><i style="width: 18%"></i></div><b>18</b></div>
+          </div>
+          <p class="quote">Деньги становятся управляемыми, когда у человека есть не только доход, но и система: учет, распределение, резерв, капитал и личная стратегия решений.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="alt">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2>Это не курс по финансовой грамотности</h2>
+            <p>Информации про деньги много. Проблема обычно не в том, что человек не слышал про бюджет, подушку или инвестиции. Проблема в том, что знания не превращаются в устойчивое поведение и капитал.</p>
+          </div>
+          <p>Работа строится вокруг конкретного человека: его доходов, долгов, сценариев, страхов, привычек, целей и способности выдерживать дисциплину.</p>
+        </div>
+
+        <div class="grid-3">
+          <article class="card">
+            <span class="tag">Диагностика</span>
+            <h3>Разобрать реальную точку А</h3>
+            <p>Доходы, расходы, долги, активы, капитал, риски, хаос в решениях и уровень финансовой опасности.</p>
+          </article>
+          <article class="card">
+            <span class="tag">Стратегия</span>
+            <h3>Собрать личный маршрут</h3>
+            <p>Не абстрактный совет, а понятная последовательность действий: что считать, что закрывать, что защищать, куда направлять капитал.</p>
+          </article>
+          <article class="card">
+            <span class="tag">Поведение</span>
+            <h3>Закрепить привычку капитализации</h3>
+            <p>Чтобы часть дохода регулярно превращалась в резерв, капитал и свободу, а не растворялась в импульсивных тратах.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="session">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2>Вход в работу: стратегическая сессия</h2>
+            <p>2-3 часа индивидуального разбора, где становится понятно, что на самом деле происходит с деньгами и какой маршрут подходит человеку.</p>
+          </div>
+          <p>Сессия нужна не для продажи наставничества любой ценой. Это фильтр, диагностика и первый рабочий результат.</p>
+        </div>
+
+        <div class="steps">
+          <div class="step">
+            <div>
+              <h3>Собираем финансовую картину</h3>
+              <p>Доходы, расходы, долги, обязательства, активы, резервы, текущий капитал и главные финансовые утечки.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div>
+              <h3>Определяем финансовые баги</h3>
+              <p>Где человек теряет деньги: страх, хаос, статусные траты, долги, отсутствие учета, чужое мнение, азарт или избегание.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div>
+              <h3>Формируем первичный маршрут</h3>
+              <p>Что делать в первую очередь: стабилизация, учет, резерв, закрытие опасных долгов, распределение дохода, первые действия по капиталу.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div>
+              <h3>Решаем, подходит ли наставничество</h3>
+              <p>В работу идут не все. Если человек не готов выполнять действия, платить за формат или выдерживать дисциплину, его не нужно тащить в программу.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="mentoring" class="alt">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2>3 месяца базового наставничества</h2>
+            <p>Минимальный рабочий цикл без VIP-сопровождения: индивидуальная стратегия, таблицы, домашние задания и регулярный контроль движения.</p>
+          </div>
+          <p>Фокус не в том, чтобы засыпать человека сложными инструментами. Фокус в том, чтобы он начал видеть деньги как систему и капитал как ценность.</p>
+        </div>
+
+        <div class="grid-3">
+          <article class="card dark">
+            <span class="tag">Месяц 1</span>
+            <h3>Навести порядок</h3>
+            <p>Учет, точка А, обязательства, опасные зоны, первые правила распределения денег и контроль утечек.</p>
+          </article>
+          <article class="card dark">
+            <span class="tag">Месяц 2</span>
+            <h3>Собрать систему</h3>
+            <p>Резерв, цели, капитализация, личные финансовые правила, работа с долгами и решениями.</p>
+          </article>
+          <article class="card dark">
+            <span class="tag">Месяц 3</span>
+            <h3>Закрепить поведение</h3>
+            <p>Еженедельная сверка, корректировка стратегии, удержание дисциплины и переход к самостоятельному управлению капиталом.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2>Кому подходит</h2>
+            <p>Формат для людей, которым нужен взрослый финансовый разбор, а не мотивация и не быстрые обещания доходности.</p>
+          </div>
+        </div>
+
+        <div class="fit-list">
+          <div class="fit">
+            <h3>Подходит, если</h3>
+            <ul>
+              <li>доход есть, но капитал не растет;</li>
+              <li>деньги приходят и быстро расходятся;</li>
+              <li>нет понятной системы учета и распределения;</li>
+              <li>есть долги, тревога или кассовые разрывы;</li>
+              <li>хочется личную стратегию, а не общий совет;</li>
+              <li>готовы выполнять задания и показывать цифры.</li>
+            </ul>
+          </div>
+          <div class="fit no">
+            <h3>Не подходит, если</h3>
+            <ul>
+              <li>нужны сигналы, быстрые иксы или азарт;</li>
+              <li>нет готовности считать деньги честно;</li>
+              <li>хочется результата без действий;</li>
+              <li>оплата ухудшит финансовое положение;</li>
+              <li>есть ожидание, что наставник будет жить жизнь за клиента;</li>
+              <li>нет ресурса на 3 месяца дисциплины.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="price" class="alt">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2>Форматы и стоимость</h2>
+            <p>Сначала стратегическая сессия. После нее становится понятно, есть ли смысл идти в трехмесячную работу.</p>
+          </div>
+        </div>
+
+        <div class="pricing">
+          <article class="price-card">
+            <span class="tag">Входная диагностика</span>
+            <h3>Стратегическая сессия</h3>
+            <div class="price">20 000 ₽</div>
+            <p>2-3 часа индивидуального разбора финансовой точки А, рисков, целей, багов и первичного маршрута.</p>
+            <ul>
+              <li>рабочие таблицы;</li>
+              <li>разбор доходов, расходов, долгов и активов;</li>
+              <li>первичный план действий;</li>
+              <li>решение по дальнейшему формату.</li>
+            </ul>
+          </article>
+
+          <article class="price-card primary">
+            <span class="tag">После отбора</span>
+            <h3>3-месячное наставничество</h3>
+            <div class="price">300 000 ₽</div>
+            <p>Индивидуальная работа по формированию финансового мышления, системы контроля и привычки капитализации.</p>
+            <ul>
+              <li>стратегическая сессия входит в стоимость при переходе;</li>
+              <li>еженедельный контроль и домашние задания;</li>
+              <li>сверка таблиц и движения капитала;</li>
+              <li>корректировка стратегии по реальной жизни клиента;</li>
+              <li>без VIP-сопровождения и без бесконечного доступа 24/7.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="apply">
+      <div class="wrap">
+        <div class="cta">
+          <p class="eyebrow"><span class="dot"></span> Запись через личное сообщение</p>
+          <h2>Начать нужно со стратегической сессии</h2>
+          <p>Напишите Игорю Подольскому: "Хочу на стратегическую сессию". В ответ вы получите короткие вопросы для первичного отбора. Если формат подходит, назначается дата разбора.</p>
+          <div class="hero-actions">
+            <a class="button" href="https://t.me/Cepasso">Написать в Telegram</a>
+            <a class="button secondary" href="mailto:">Обсудить формат</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div>Игорь Подольский · Финансовое мышление и капитал</div>
+      <div>Стратегия, контроль, капитализация</div>
+    </div>
+  </footer>
+</body>
+</html>
