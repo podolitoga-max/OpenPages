@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 360" role="img" aria-labelledby="title desc">
+  <title id="title">TSK</title>
+  <desc id="desc">Фирменный знак TSK</desc>
+  <path d="M26 24h188L120 150 26 24Z" fill="#bfc0c0"/>
+  <path d="M80 58h80v34h-23v45h-34V92H80V58Z" fill="#ffffff"/>
+  <circle cx="120" cy="193" r="76" fill="#df3042"/>
+  <path d="M142 151c-12-10-28-14-44-10-28 7-47 32-44 61 3 30 28 52 58 52 12 0 24-4 34-11l-29-32c-3 2-6 3-10 3-12 0-21-9-21-21s9-21 21-21c4 0 8 1 11 4l24-25Z" fill="#ffffff"/>
+  <circle cx="120" cy="193" r="20" fill="#df3042"/>
+  <path d="M53 265h134v80H53v-80Z" fill="#bfc0c0"/>
+  <path d="M85 285h34v24l28-24h34l-37 33 38 27h-39l-24-18v18H85v-60Z" fill="#ffffff"/>
+</svg>
