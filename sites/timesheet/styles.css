@@ -333,6 +333,22 @@ textarea:focus {
   font-size: 28px;
 }
 
+.object-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.object-meta span {
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--soft);
+}
+
 .grid-2 {
   display: grid;
   grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);

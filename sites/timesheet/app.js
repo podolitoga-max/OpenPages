@@ -1,5 +1,5 @@
-const STORAGE_KEY = "tsk-timesheet-github-v3";
-const OLD_STORAGE_KEYS = ["tsk-timesheet-github-v2", "tsk-timesheet-github-v1"];
+const STORAGE_KEY = "tsk-timesheet-github-v4";
+const OLD_STORAGE_KEYS = [];
 const MONTH_KEY = "tsk-timesheet-month";
 const MY_DAYS_MODE_KEY = "tsk-my-days-mode";
 const OPEN_PROJECT_KEY = "tsk-open-project";
@@ -9,6 +9,7 @@ const MY_DAYS_CORRECTION_KEY = "tsk-my-days-correction";
 const projectStatuses = {
   active: "В работе",
   paused: "На паузе",
+  completed: "Завершен",
   archived: "Архив",
 };
 
@@ -24,6 +25,7 @@ const seedState = {
       rate: 0,
       rateRules: [],
       active: true,
+      status: "active",
     },
     {
       id: "worker-yura",
@@ -31,10 +33,11 @@ const seedState = {
       name: "Юра",
       position: "Мастер",
       login: "yura",
-      password: "1111",
+      password: "12345",
       rate: 6500,
       rateRules: [{ id: "rate-yura-base", startDate: "2026-07-01", endDate: "", rate: 6500, note: "Базовая ставка" }],
       active: true,
+      status: "active",
     },
     {
       id: "worker-misha",
@@ -42,25 +45,31 @@ const seedState = {
       name: "Миша",
       position: "Мастер",
       login: "misha",
-      password: "1111",
+      password: "12345",
       rate: 6500,
       rateRules: [{ id: "rate-misha-base", startDate: "2026-07-01", endDate: "", rate: 6500, note: "Базовая ставка" }],
       active: true,
+      status: "active",
+    },
+    {
+      id: "worker-fazildin",
+      role: "worker",
+      name: "Фазельдин",
+      position: "Мастер",
+      login: "fazildin",
+      password: "12345",
+      rate: 7000,
+      rateRules: [{ id: "rate-fazildin-base", startDate: "2026-07-01", endDate: "", rate: 7000, note: "Базовая ставка" }],
+      active: true,
+      status: "active",
     },
   ],
-  projects: [
-    { id: "project-arbat", name: "Арбат", status: "active" },
-    { id: "project-tverskaya", name: "Тверская", status: "active" },
-    { id: "project-dmitrovka", name: "Дмитровка", status: "active" },
-    { id: "project-mikhalkovskaya", name: "Михалковская", status: "active" },
-  ],
-  entries: [
-    { id: crypto.randomUUID(), userId: "worker-yura", projectId: "project-arbat", date: "2026-07-03", source: "demo" },
-    { id: crypto.randomUUID(), userId: "worker-misha", projectId: "project-tverskaya", date: "2026-07-03", source: "demo" },
-  ],
+  projects: [],
+  entries: [],
   requests: [],
   bonuses: [],
   payments: [],
+  logs: [],
 };
 
 let state = loadState();
@@ -92,6 +101,7 @@ function normalizeState(data) {
     requests: Array.isArray(data.requests) ? data.requests : [],
     bonuses: Array.isArray(data.bonuses) ? data.bonuses : [],
     payments: Array.isArray(data.payments) ? data.payments : [],
+    logs: Array.isArray(data.logs) ? data.logs : [],
   };
   normalized.users = normalized.users.map((user) => {
     const role = user.role === "manager" || user.role === "admin" || user.role === "worker" ? user.role : "worker";
@@ -121,6 +131,7 @@ function normalizeState(data) {
     nightShift: Boolean(project.nightShift),
     accessMode: project.accessMode || "all",
     allowedUserIds: Array.isArray(project.allowedUserIds) ? project.allowedUserIds : [],
+    startDate: project.startDate || today(),
   }));
   normalized.entries = normalized.entries
     .filter((entry) => entry.userId && entry.projectId && entry.date)
@@ -180,14 +191,29 @@ function normalizeState(data) {
   }));
   normalized.payments = normalized.payments.map((payment) => ({
     id: payment.id || crypto.randomUUID(),
+    batchId: payment.batchId || payment.id || crypto.randomUUID(),
     userId: payment.userId,
     projectId: payment.projectId || ADVANCE_PROJECT_ID,
     month: payment.month || selectedMonth(),
     amount: Number(payment.amount || 0),
     type: payment.type || (payment.projectId && payment.projectId !== ADVANCE_PROJECT_ID ? "legacy" : "cash"),
+    date: payment.date || payment.createdAt?.slice(0, 10) || today(),
     createdAt: payment.createdAt || new Date().toISOString(),
   }));
+  normalized.logs = normalized.logs.map((log) => ({
+    id: log.id || crypto.randomUUID(),
+    userId: log.userId || "",
+    projectId: log.projectId || "",
+    entryId: log.entryId || "",
+    type: log.type || "event",
+    text: log.text || "",
+    createdAt: log.createdAt || new Date().toISOString(),
+  }));
   return normalized;
+}
+
+function addLog({ userId = "", projectId = "", entryId = "", type = "event", text = "" }) {
+  state.logs.unshift({ id: crypto.randomUUID(), userId, projectId, entryId, type, text, createdAt: new Date().toISOString() });
 }
 
 function defaultPermissions(role) {
@@ -240,6 +266,10 @@ function currentUser() {
 
 function today() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function isoAt(date, time) {
+  return new Date(`${date}T${time}:00`).toISOString();
 }
 
 function monthKey(date = new Date()) {
@@ -300,6 +330,7 @@ function visibleProjects() {
   return [
     ...state.projects.filter((project) => project.status === "active"),
     ...state.projects.filter((project) => project.status === "paused"),
+    ...state.projects.filter((project) => project.status === "completed"),
     ...state.projects.filter((project) => project.status === "archived"),
   ];
 }
@@ -331,6 +362,8 @@ function workdayEndIso(date) {
 
 function autoRestApplies(entry) {
   if (!entry || entry.endedAt || entry.night) return false;
+  const checkedHour = entry.checkedAt ? new Date(entry.checkedAt).getHours() : 9;
+  if (checkedHour >= 18) return false;
   if (entry.date < today()) return true;
   return entry.date === today() && new Date().getHours() >= 18;
 }
@@ -352,6 +385,12 @@ function openEntryForUser(userId, date = today()) {
 function formatTime(iso) {
   if (!iso) return "—";
   return new Date(iso).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+}
+
+function endLabel(entry) {
+  if (entry?.endedAt) return `ушел ${formatTime(entry.endedAt)}`;
+  if (autoRestApplies(entry)) return `смена завершена ${formatTime(workdayEndIso(entry.date))}`;
+  return "работает";
 }
 
 function workerStatusLabel(worker) {
@@ -428,6 +467,22 @@ function projectPaid(projectId, month, userId = null) {
     .reduce((sum, payment) => sum + payment.amount, 0);
 }
 
+function projectAccruedTotal(projectId, userId = null) {
+  const entryTotal = state.entries
+    .filter((entry) => entry.projectId === projectId && (!userId || entry.userId === userId))
+    .reduce((sum, entry) => sum + entryAccrual(entry), 0);
+  const bonusTotal = state.bonuses
+    .filter((bonus) => bonus.projectId === projectId && (!userId || bonus.userId === userId))
+    .reduce((sum, bonus) => sum + bonus.amount, 0);
+  return entryTotal + bonusTotal;
+}
+
+function projectPaidTotal(projectId, userId = null) {
+  return state.payments
+    .filter((payment) => payment.projectId === projectId && (!userId || payment.userId === userId) && (payment.type === "allocation" || payment.type === "legacy"))
+    .reduce((sum, payment) => sum + payment.amount, 0);
+}
+
 function bonusesForWorkerMonth(userId, month) {
   return state.bonuses.filter((bonus) => bonus.userId === userId && bonus.month === month);
 }
@@ -499,6 +554,7 @@ function render() {
     button.className = activeView === item.id ? "active" : "";
     button.addEventListener("click", () => {
       activeView = item.id;
+      if (item.id === "objects") localStorage.removeItem(OPEN_PROJECT_KEY);
       render();
     });
     navEl.append(button);
@@ -631,7 +687,7 @@ function presenceRow(worker) {
       </div>
       <div class="presence-object">
         <strong>${current ? projectName(current.projectId) : status}</strong>
-        <span>${current ? `пришел ${formatTime(current.checkedAt)}` : last ? `последний объект: ${projectName(last.projectId)} · ушел ${formatTime(effectiveEndedAt(last))}` : "нет отметки сегодня"}</span>
+        <span>${current ? `пришел ${formatTime(current.checkedAt)}` : last ? `последний объект: ${projectName(last.projectId)} · ${endLabel(last)}` : "нет отметки сегодня"}</span>
       </div>
     </article>
   `;
@@ -702,7 +758,22 @@ function workerStatsTable(userId, month) {
     <div class="table-wrap">
       <table>
         <thead><tr><th>Дата</th><th>Объект</th><th>Пришел</th><th>Ушел</th><th>Тип</th></tr></thead>
-        <tbody>${entries.map((entry) => `<tr><td>${entry.date}</td><td>${projectName(entry.projectId)}</td><td>${formatTime(entry.checkedAt)}</td><td>${formatTime(effectiveEndedAt(entry))}</td><td>${entry.night ? "Ночная" : entry.secondObject ? "Второй объект" : "День"}</td></tr>`).join("")}</tbody>
+        <tbody>${entries.map((entry) => `<tr><td>${entry.date}</td><td>${projectName(entry.projectId)}</td><td>${formatTime(entry.checkedAt)}</td><td>${endLabel(entry)}</td><td>${entry.night ? "Ночная" : entry.secondObject ? "Второй объект" : "День"}</td></tr>`).join("")}</tbody>
+      </table>
+    </div>
+    ${workerLogTable(userId, month)}
+  `;
+}
+
+function workerLogTable(userId, month) {
+  const logs = state.logs.filter((log) => log.userId === userId && log.createdAt.slice(0, 7) === month);
+  if (!logs.length) return `<div class="empty">Логов действий за месяц нет.</div>`;
+  return `
+    <h3>Лог действий</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Дата</th><th>Время</th><th>Объект</th><th>Действие</th></tr></thead>
+        <tbody>${logs.map((log) => `<tr><td>${log.createdAt.slice(0, 10)}</td><td>${formatTime(log.createdAt)}</td><td>${projectName(log.projectId)}</td><td>${log.text}</td></tr>`).join("")}</tbody>
       </table>
     </div>
   `;
@@ -843,6 +914,7 @@ function openWorkerCard(userId) {
     `<div class="stack">
       <div class="notice">${user.position || "Сотрудник"} · ${uniqueDatesForUser(user.id, month).length} рабочих дней за ${month}</div>
       <div class="modal-actions">
+        <button class="ghost" data-edit-worker="${user.id}">Редактировать карточку</button>
         <button class="primary" data-add-rate="${user.id}">Изменить заработную плату</button>
         <button class="secondary" data-add-bonus="${user.id}">Добавить премию</button>
       </div>
@@ -854,8 +926,44 @@ function openWorkerCard(userId) {
     </div>`,
   );
   document.querySelector(".modal")?.classList.add("modal-wide");
+  document.querySelector("[data-edit-worker]")?.addEventListener("click", () => openWorkerEditModal(user.id));
   document.querySelector("[data-add-rate]")?.addEventListener("click", () => openRateModal(user.id));
   document.querySelector("[data-add-bonus]")?.addEventListener("click", () => openBonusModal(user.id));
+}
+
+function openWorkerEditModal(userId) {
+  const user = byId(state.users, userId);
+  closeModal();
+  openModal(
+    `Редактировать карточку: ${user.name}`,
+    `<form id="workerEditForm" class="form-grid">
+      <label>Имя<input id="editWorkerName" required value="${user.name}" /></label>
+      <label>Должность<input id="editWorkerPosition" required value="${user.position || ""}" /></label>
+      <label>Логин<input id="editWorkerLogin" required value="${user.login}" /></label>
+      <label>Новый пароль<input id="editWorkerPassword" type="password" placeholder="Оставить текущий" /></label>
+      <label>Базовая ставка<input id="editWorkerRate" type="number" min="0" step="500" required value="${user.rate || rateForDate(user, today())}" /></label>
+      <button class="primary" type="submit">Сохранить карточку</button>
+    </form>`,
+  );
+  document.querySelector("#workerEditForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const login = value("editWorkerLogin").trim();
+    if (state.users.some((item) => item.id !== user.id && item.login === login)) {
+      alert("Такой логин уже есть.");
+      return;
+    }
+    user.name = value("editWorkerName").trim();
+    user.position = value("editWorkerPosition").trim();
+    user.login = login;
+    if (value("editWorkerPassword")) user.password = value("editWorkerPassword");
+    user.rate = Number(value("editWorkerRate"));
+    if (!user.rateRules?.length) {
+      user.rateRules = [{ id: crypto.randomUUID(), startDate: today(), endDate: "", rate: user.rate, note: "Базовая ставка" }];
+    }
+    saveState();
+    closeModal();
+    render();
+  });
 }
 
 function rateRulesList(user) {
@@ -950,6 +1058,7 @@ function renderProjects() {
         <form id="projectForm" class="card form-grid">
           <h3>Новый объект</h3>
           <label>Название<input id="projectName" required placeholder="Арбат" /></label>
+          <label>Старт проекта<input id="projectStart" type="date" required value="${today()}" /></label>
           <button class="primary" type="submit">Добавить объект</button>
         </form>
         <div class="card">
@@ -961,7 +1070,7 @@ function renderProjects() {
   `;
   document.querySelector("#projectForm").addEventListener("submit", (event) => {
     event.preventDefault();
-    state.projects.push({ id: crypto.randomUUID(), name: value("projectName").trim(), status: "active" });
+    state.projects.push({ id: crypto.randomUUID(), name: value("projectName").trim(), startDate: value("projectStart"), status: "active", nightShift: false, accessMode: "all", allowedUserIds: [] });
     saveState();
     render();
   });
@@ -973,15 +1082,18 @@ function projectTable() {
     .map(
       (project) => `
         <tr class="${project.status === "archived" ? "muted-row" : ""}">
-          <td>${project.name}</td>
+          <td>${project.name}<br><small>старт ${project.startDate || today()}</small></td>
           <td>${projectStatuses[project.status]} · ${projectAccessLabel(project)}</td>
           <td class="actions">
+            <button class="ghost" data-edit-project="${project.id}">Редактировать</button>
             <button class="ghost" data-project-night="${project.id}">${project.nightShift ? "Ночь включена" : "Открыть ночь"}</button>
             <button class="ghost" data-project-access="${project.id}">Доступ сотрудникам</button>
             ${
               project.status === "active"
-                ? `<button class="ghost" data-project-status="${project.id}:paused">На паузу</button><button class="ghost" data-project-status="${project.id}:archived">В архив</button>`
-                : `<button class="ghost" data-project-status="${project.id}:active">Активировать</button>`
+                ? `<button class="ghost" data-project-status="${project.id}:paused">На паузу</button><button class="ghost" data-project-status="${project.id}:completed">Завершить объект</button>`
+                : project.status === "completed"
+                  ? `<button class="ghost" data-project-status="${project.id}:active">Открыть снова</button><button class="ghost" data-project-status="${project.id}:archived">В архив</button>`
+                  : `<button class="ghost" data-project-status="${project.id}:active">Активировать</button>`
             }
             ${canDeleteProject(project.id) ? `<button class="danger" data-delete-project="${project.id}">Удалить</button>` : ""}
           </td>
@@ -1000,6 +1112,9 @@ function projectTable() {
 }
 
 function bindProjectActions() {
+  document.querySelectorAll("[data-edit-project]").forEach((button) => {
+    button.addEventListener("click", () => openProjectEditModal(button.dataset.editProject));
+  });
   document.querySelectorAll("[data-project-night]").forEach((button) => {
     button.addEventListener("click", () => {
       const project = byId(state.projects, button.dataset.projectNight);
@@ -1028,6 +1143,26 @@ function bindProjectActions() {
       saveState();
       render();
     });
+  });
+}
+
+function openProjectEditModal(projectId) {
+  const project = byId(state.projects, projectId);
+  openModal(
+    `Редактировать объект: ${project.name}`,
+    `<form id="projectEditForm" class="form-grid">
+      <label>Название<input id="editProjectName" required value="${project.name}" /></label>
+      <label>Старт проекта<input id="editProjectStart" type="date" required value="${project.startDate || today()}" /></label>
+      <button class="primary" type="submit">Сохранить объект</button>
+    </form>`,
+  );
+  document.querySelector("#projectEditForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    project.name = value("editProjectName").trim();
+    project.startDate = value("editProjectStart");
+    saveState();
+    closeModal();
+    render();
   });
 }
 
@@ -1082,12 +1217,11 @@ function renderObjectReport() {
   const project = state.projects.find((item) => item.id === opened);
   view().innerHTML = `
     <section class="page">
-      ${pageHead("Отчет по объектам", "Зарплатный фонд объекта и месячный табель по сотрудникам.")}
-      ${monthControl(month)}
-      ${project ? projectMonthReport(project, month) : projectButtons(month)}
+      ${pageHead("Отчет по объектам", "Общая сводка по объектам и провал в детализацию по выбранному объекту.")}
+      ${project ? projectFullReport(project, month) : projectButtons()}
     </section>
   `;
-  bindMonthControl();
+  if (project) bindMonthControl();
   document.querySelectorAll("[data-open-project]").forEach((button) => {
     button.addEventListener("click", () => {
       localStorage.setItem(OPEN_PROJECT_KEY, button.dataset.openProject);
@@ -1100,13 +1234,13 @@ function renderObjectReport() {
   });
 }
 
-function projectButtons(month) {
+function projectButtons() {
   return `
     <div class="object-buttons">
       ${visibleProjects()
         .map((project) => {
-          const accrued = projectAccrued(project.id, month);
-          const paid = projectPaid(project.id, month);
+          const accrued = projectAccruedTotal(project.id);
+          const paid = projectPaidTotal(project.id);
           const balance = Math.max(0, accrued - paid);
           return `
             <button data-open-project="${project.id}" class="object-button">
@@ -1121,9 +1255,9 @@ function projectButtons(month) {
   `;
 }
 
-function projectMonthReport(project, month) {
-  const accrued = projectAccrued(project.id, month);
-  const paid = projectPaid(project.id, month);
+function projectFullReport(project, month) {
+  const accrued = projectAccruedTotal(project.id);
+  const paid = projectPaidTotal(project.id);
   const balance = Math.max(0, accrued - paid);
   return `
     <section class="card">
@@ -1136,8 +1270,33 @@ function projectMonthReport(project, month) {
         ${metric("Выплачено", money(paid))}
         ${metric("Остаток", money(balance))}
       </div>
+      <div class="object-meta">
+        <span>Старт проекта: ${formatDate(project.startDate || today())}</span>
+        <span>Статус: ${projectStatuses[project.status]}</span>
+      </div>
+      ${projectWorkerTotals(project)}
+      ${monthControl(month)}
       ${projectCalendarTable(project, month)}
     </section>
+  `;
+}
+
+function projectWorkerTotals(project) {
+  const rows = workers(true)
+    .map((worker) => {
+      const accrued = projectAccruedTotal(project.id, worker.id);
+      const paid = projectPaidTotal(project.id, worker.id);
+      if (!accrued && !paid) return "";
+      return `<tr><td>${worker.name}</td><td>${money(accrued)}</td><td>${money(paid)}</td><td>${money(Math.max(0, accrued - paid))}</td></tr>`;
+    })
+    .join("");
+  return `
+    <div class="table-wrap compact-table">
+      <table>
+        <thead><tr><th>Сотрудник</th><th>Заработал на объекте</th><th>Выплачено</th><th>Остаток</th></tr></thead>
+        <tbody>${rows || `<tr><td colspan="4">По объекту пока нет начислений.</td></tr>`}</tbody>
+      </table>
+    </div>
   `;
 }
 
@@ -1192,6 +1351,7 @@ function renderPayroll() {
     button.addEventListener("click", () => openPayModal(button.dataset.payWorker, month));
   });
   document.querySelector("[data-open-bonus]")?.addEventListener("click", () => openPayrollBonusModal(month));
+  document.querySelector("[data-open-payments]")?.addEventListener("click", () => openPaymentsModal(month));
 }
 
 function payrollTable(month) {
@@ -1220,6 +1380,7 @@ function payrollTable(month) {
       <h3>Расчет на ${month}</h3>
       <div class="actions">
         <span class="chip gold">Остаток ${money(totalAccrued - totalPaid)}</span>
+        <button class="ghost small-btn" data-open-payments>Все выплаты</button>
         <button class="secondary small-btn" data-open-bonus>Выдать премию</button>
       </div>
     </div>
@@ -1251,6 +1412,7 @@ function openPayModal(userId, month) {
     `<form id="payForm" class="form-grid">
       <div class="notice">Сначала распределяется уже выданный аванс, потом новая выплата. Один объект можно списать только один раз за выплату.</div>
       <div class="pay-remainder">Аванс к распределению: <strong>${money(advance)}</strong></div>
+      <label>Дата выплаты<input id="payDate" type="date" required value="${today()}" /></label>
       <label>Новая сумма выплаты<input id="payAmount" type="number" min="0" step="500" value="0" required /></label>
       <div id="payRemainder" class="pay-remainder">К распределению: ${money(advance)}</div>
       <div class="pay-object-list">
@@ -1290,16 +1452,51 @@ function openPayModal(userId, month) {
   document.querySelector("#payForm").addEventListener("submit", (event) => {
     event.preventDefault();
     const newCash = Number(amountInput.value || 0);
+    const payDate = value("payDate");
+    const batchId = crypto.randomUUID();
     if (newCash > 0) {
-      state.payments.push({ id: crypto.randomUUID(), userId, projectId: ADVANCE_PROJECT_ID, month, amount: newCash, type: "cash", createdAt: new Date().toISOString() });
+      state.payments.push({ id: crypto.randomUUID(), batchId, userId, projectId: ADVANCE_PROJECT_ID, month, amount: newCash, type: "cash", date: payDate, createdAt: new Date().toISOString() });
     }
     allocations.forEach((item) => {
-      state.payments.push({ id: crypto.randomUUID(), userId, projectId: item.projectId, month, amount: item.amount, type: "allocation", createdAt: new Date().toISOString() });
+      state.payments.push({ id: crypto.randomUUID(), batchId, userId, projectId: item.projectId, month, amount: item.amount, type: "allocation", date: payDate, createdAt: new Date().toISOString() });
     });
     saveState();
     closeModal();
     render();
   });
+}
+
+function openPaymentsModal(month) {
+  const payments = state.payments
+    .filter((payment) => payment.month === month)
+    .sort((a, b) => `${b.date}${b.createdAt}`.localeCompare(`${a.date}${a.createdAt}`));
+  const batches = new Map();
+  payments.forEach((payment) => {
+    const key = payment.batchId || payment.id;
+    if (!batches.has(key)) batches.set(key, []);
+    batches.get(key).push(payment);
+  });
+  const rows = [...batches.values()]
+    .map((items) => {
+      const cash = items.filter((item) => item.type === "cash" || item.type === "legacy").reduce((sum, item) => sum + item.amount, 0);
+      const allocated = items.filter((item) => item.type === "allocation" || item.type === "legacy").reduce((sum, item) => sum + item.amount, 0);
+      const first = items[0];
+      const detail = items
+        .filter((item) => item.projectId !== ADVANCE_PROJECT_ID)
+        .map((item) => `${projectName(item.projectId)}: ${money(item.amount)}`)
+        .join("; ");
+      return `<tr><td>${first.date}</td><td>${userName(first.userId)}</td><td>${money(cash)}</td><td>${money(allocated)}</td><td>${detail || "оставлено авансом"}</td></tr>`;
+    })
+    .join("");
+  openModal(
+    `Выплаты за ${month}`,
+    `<div class="table-wrap">
+      <table>
+        <thead><tr><th>Дата</th><th>Сотрудник</th><th>Выдано</th><th>Распределено</th><th>Куда ушло</th></tr></thead>
+        <tbody>${rows || `<tr><td colspan="5">Выплат за месяц нет.</td></tr>`}</tbody>
+      </table>
+    </div>`,
+  );
 }
 
 function openPayrollBonusModal(month) {
@@ -1556,7 +1753,7 @@ function renderCheckin(user) {
         ${uiMessage ? `<div class="notice">${uiMessage}</div>` : ""}
         <p class="eyebrow">Сегодня</p>
         <h2>${formatDate(today())}</h2>
-        ${current ? `<button id="finishWorkBtn" class="big-action">Закончил работу</button>` : `<button id="checkinBtn" class="big-action">Отметиться на объекте</button>`}
+        ${current ? `<button id="finishWorkBtn" class="big-action">Завершить работу</button>` : `<button id="checkinBtn" class="big-action">${todaysEntries.length ? "Пришел на другой объект" : "Отметиться на объекте"}</button>`}
         ${
           current
             ? `<div class="current-project"><span>Вы сейчас на объекте</span><strong>${projectName(current.projectId)}${current.night ? " Н" : ""}</strong><div class="actions"><button id="changeProjectBtn" class="ghost">Изменить объект</button>${canNight ? `<button id="nightShiftBtn" class="secondary">Ночная смена</button>` : ""}</div></div>`
@@ -1577,6 +1774,7 @@ function renderCheckin(user) {
   });
   document.querySelector("#finishWorkBtn")?.addEventListener("click", () => {
     current.endedAt = new Date().toISOString();
+    addLog({ userId: user.id, projectId: current.projectId, entryId: current.id, type: "finish", text: "Сотрудник завершил работу" });
     saveState();
     uiMessage = `Работа на объекте ${projectName(current.projectId)} завершена.`;
     render();
@@ -1588,6 +1786,7 @@ function renderCheckin(user) {
   document.querySelectorAll("[data-cancel-entry]").forEach((button) => {
     button.addEventListener("click", () => {
       state.entries = state.entries.filter((entry) => entry.id !== button.dataset.cancelEntry);
+      addLog({ userId: user.id, projectId: "", entryId: button.dataset.cancelEntry, type: "cancel", text: "Сотрудник отменил работу на объекте" });
       saveState();
       uiMessage = "Работа на объекте отменена.";
       render();
@@ -1596,6 +1795,7 @@ function renderCheckin(user) {
   document.querySelector("#nightShiftBtn")?.addEventListener("click", () => {
     current.night = true;
     current.changedAt = new Date().toISOString();
+    addLog({ userId: user.id, projectId: current.projectId, entryId: current.id, type: "night", text: "Сотрудник отметил ночную смену" });
     saveState();
     uiMessage = `Ночная смена по объекту ${projectName(current.projectId)} отмечена.`;
     render();
@@ -1603,17 +1803,17 @@ function renderCheckin(user) {
 }
 
 function checkinHistoryRow(entry) {
-  const ended = effectiveEndedAt(entry);
+  const open = isEntryOpen(entry);
   return `
-    <div class="history-row ${isEntryOpen(entry) ? "is-open" : ""}">
+    <div class="history-row ${open ? "is-open" : ""}">
       <div>
         <strong>${projectName(entry.projectId)}${entry.night ? " Н" : ""}</strong>
-        <span>пришел ${formatTime(entry.checkedAt)} · ушел ${formatTime(ended)}</span>
+        <span>пришел ${formatTime(entry.checkedAt)} · ${endLabel(entry)}</span>
       </div>
-      <div class="actions">
+      ${open ? `<div class="actions">
         <button class="ghost small-btn" data-change-entry="${entry.id}">Изменить</button>
         <button class="danger small-btn" data-cancel-entry="${entry.id}">Отменить работу</button>
-      </div>
+      </div>` : ""}
     </div>
   `;
 }
@@ -1637,7 +1837,10 @@ function openProjectPicker(user, mode = "first", entryId = "") {
       ${selected.length ? `<div class="notice">Вы уже отмечены: ${selected.map((entry) => projectName(entry.projectId)).join(", ")}. ${mode === "replace" ? "Выберите объект, который должен заменить текущий." : "Выберите второй объект, если пришли на него."}</div>` : ""}
       <div class="project-list">
         ${availableProjects
-          .map((project) => `<button class="project-choice" ${(mode === "first" || mode === "second") && selected.some((entry) => entry.projectId === project.id) ? "disabled" : ""} data-project-choice="${project.id}">${project.name}</button>`)
+          .map((project) => {
+            const alreadyUsed = selected.some((entry) => entry.projectId === project.id && entry.id !== entryId);
+            return `<button class="project-choice" ${(mode === "first" || mode === "second" || mode === "replace") && alreadyUsed ? "disabled" : ""} data-project-choice="${project.id}">${project.name}</button>`;
+          })
           .join("")}
       </div>
     </div>
@@ -1652,12 +1855,13 @@ function handleProjectChoice(user, projectId, mode, entryId = "") {
   const entries = entriesForUserDate(user.id, today());
   if (mode === "replace") {
     const target = state.entries.find((entry) => entry.id === entryId) || entries.at(-1);
+    const oldProjectId = target.projectId;
     target.projectId = projectId;
     target.changedAt = new Date().toISOString();
+    addLog({ userId: user.id, projectId, entryId: target.id, type: "change", text: `Сотрудник изменил объект: ${projectName(oldProjectId)} -> ${projectName(projectId)}` });
   } else {
     upsertEntry(user.id, projectId, today(), mode === "second" ? "second-object" : "checkin");
     const entry = entriesForUserDate(user.id, today()).find((item) => item.projectId === projectId);
-    entry.checkedAt = new Date().toISOString();
     entry.secondObject = mode === "second";
   }
   saveState();
@@ -1723,7 +1927,27 @@ function upsertEntry(userId, projectId, date, source) {
     existing.source = source;
     return;
   }
-  state.entries.push({ id: crypto.randomUUID(), userId, projectId, date, source, checkedAt: new Date().toISOString(), changedAt: "", secondObject: existingDateEntries.length > 0, night: false });
+  const manualSource = source === "manual" || source === "admin-approved";
+  const entry = {
+    id: crypto.randomUUID(),
+    userId,
+    projectId,
+    date,
+    source,
+    checkedAt: manualSource ? isoAt(date, "09:00") : new Date().toISOString(),
+    endedAt: manualSource ? isoAt(date, "18:00") : "",
+    changedAt: "",
+    secondObject: existingDateEntries.length > 0,
+    night: false,
+  };
+  state.entries.push(entry);
+  addLog({
+    userId,
+    projectId,
+    entryId: entry.id,
+    type: source,
+    text: manualSource ? "Рабочий день внесен вручную: 09:00-18:00" : source === "second-object" ? "Сотрудник пришел на другой объект" : "Сотрудник отметился на объекте",
+  });
 }
 
 function renderMyDays(user) {
