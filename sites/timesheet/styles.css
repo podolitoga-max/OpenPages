@@ -395,6 +395,11 @@ th {
   color: var(--green);
 }
 
+.chip.red {
+  border-color: var(--red);
+  color: var(--red);
+}
+
 .chip.gold {
   border-color: var(--gold);
   color: #7f5b13;
@@ -491,6 +496,10 @@ th {
   border: 1px solid var(--ink);
   border-radius: 6px;
   box-shadow: 0 30px 100px rgba(0, 0, 0, 0.28);
+}
+
+.modal.modal-wide {
+  width: min(1180px, 100%);
 }
 
 .modal header {
@@ -699,9 +708,9 @@ th {
   font-weight: 800;
 }
 
-.mark-small {
-  color: var(--blue);
-  font-size: 17px;
+.mark-extra {
+  color: var(--red);
+  font-size: 26px;
   font-weight: 800;
 }
 
@@ -764,6 +773,13 @@ th {
   border-color: var(--green);
 }
 
+.pay-object:disabled,
+.pay-object.is-used {
+  cursor: not-allowed;
+  opacity: 0.52;
+  background: #e8ebe4;
+}
+
 .small-btn {
   min-height: 36px;
 }
@@ -780,6 +796,48 @@ th {
 .day-btn.disabled {
   cursor: not-allowed;
   opacity: 0.45;
+}
+
+.day-btn.filled {
+  border-color: var(--green);
+  background: #e2f0e6;
+  color: var(--green);
+  opacity: 1;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.collapsible-form {
+  margin-bottom: 18px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: #fffdf7;
+}
+
+.permission-grid,
+.project-checks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 8px;
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #fffdf7;
+  color: var(--ink);
+}
+
+.check-row input {
+  width: auto;
+  min-height: auto;
 }
 
 @media (max-width: 980px) {
