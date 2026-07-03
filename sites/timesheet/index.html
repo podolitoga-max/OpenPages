@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TSK Табель</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <template id="loginTemplate">
+      <main class="login-shell">
+        <section class="login-panel">
+          <div class="brand-mark">
+            <span>TSK</span>
+          </div>
+          <p class="eyebrow">Учет объектов и смен</p>
+          <h1>Табель сотрудников</h1>
+          <form id="loginForm" class="login-form">
+            <label>
+              Логин
+              <input id="login" autocomplete="username" required />
+            </label>
+            <label>
+              Пароль
+              <input id="password" type="password" autocomplete="current-password" required />
+            </label>
+            <button class="primary" type="submit">Войти</button>
+            <p id="loginError" class="form-error"></p>
+          </form>
+          <div class="demo-access">
+            <span>Демо: admin / admin</span>
+            <span>Сотрудник: yura / 1111</span>
+          </div>
+        </section>
+      </main>
+    </template>
+
+    <template id="appTemplate">
+      <main class="layout">
+        <aside class="sidebar">
+          <div class="mini-brand">
+            <span>TSK</span>
+            <strong>Табель</strong>
+          </div>
+          <div class="user-card">
+            <small>Пользователь</small>
+            <strong id="currentUserName"></strong>
+            <span id="currentUserRole"></span>
+          </div>
+          <nav id="mainNav" class="nav"></nav>
+          <button id="logoutBtn" class="ghost">Выйти</button>
+        </aside>
+        <section class="content">
+          <div id="view"></div>
+        </section>
+      </main>
+    </template>
+
+    <template id="modalTemplate">
+      <div class="modal-backdrop">
+        <section class="modal">
+          <header>
+            <h2 id="modalTitle"></h2>
+            <button id="modalClose" class="icon-btn" aria-label="Закрыть">×</button>
+          </header>
+          <div id="modalBody"></div>
+        </section>
+      </div>
+    </template>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
