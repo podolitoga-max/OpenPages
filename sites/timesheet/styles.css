@@ -301,6 +301,13 @@ textarea:focus {
   margin-bottom: 16px;
 }
 
+.summary-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+}
+
 .metric,
 .card,
 .panel {
@@ -453,6 +460,11 @@ th {
   border-color: var(--green);
 }
 
+.day-btn.selected.weekend {
+  background: var(--green);
+  color: #fffdf7;
+}
+
 .project-list {
   display: grid;
   gap: 8px;
@@ -575,9 +587,19 @@ th {
 }
 
 .presence-object {
-  font-size: 22px;
   color: var(--green);
   overflow-wrap: anywhere;
+}
+
+.presence-object strong {
+  font-size: 22px;
+}
+
+.presence-object span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .muted-row {
@@ -702,6 +724,11 @@ th {
   background: #eef0eb;
 }
 
+.day-btn.selected.weekend {
+  background: var(--green);
+  color: #fffdf7;
+}
+
 .mark-full {
   color: var(--green);
   font-size: 26px;
@@ -712,6 +739,27 @@ th {
   color: var(--red);
   font-size: 26px;
   font-weight: 800;
+}
+
+.correct-cell {
+  cursor: pointer;
+}
+
+.correct-cell.request-add {
+  background: #dff1df;
+  color: var(--green);
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.correct-cell.request-add::before {
+  content: "+";
+}
+
+.correct-cell.request-remove {
+  color: var(--red);
+  text-decoration: line-through;
+  text-decoration-thickness: 3px;
 }
 
 .request-card p {
@@ -737,6 +785,36 @@ th {
   color: var(--green);
   font-size: clamp(30px, 7vw, 52px);
   line-height: 1;
+}
+
+.entry-history {
+  display: grid;
+  width: min(720px, 100%);
+  gap: 8px;
+}
+
+.history-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #fffdf7;
+  text-align: left;
+}
+
+.history-row.is-open {
+  border-color: var(--green);
+  background: #edf5ef;
+}
+
+.history-row span {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .modal-actions,
@@ -895,6 +973,10 @@ th {
 
   .presence-object {
     font-size: 18px;
+  }
+
+  .history-row {
+    grid-template-columns: 1fr;
   }
 
   .object-button {

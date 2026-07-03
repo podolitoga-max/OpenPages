@@ -4,6 +4,7 @@ const MONTH_KEY = "tsk-timesheet-month";
 const MY_DAYS_MODE_KEY = "tsk-my-days-mode";
 const OPEN_PROJECT_KEY = "tsk-open-project";
 const ADVANCE_PROJECT_ID = "__advance__";
+const MY_DAYS_CORRECTION_KEY = "tsk-my-days-correction";
 
 const projectStatuses = {
   active: "В работе",
@@ -96,11 +97,13 @@ function normalizeState(data) {
     const role = user.role === "manager" || user.role === "admin" || user.role === "worker" ? user.role : "worker";
     const rate = Number(user.rate || 0);
     const rateRules = Array.isArray(user.rateRules) && user.rateRules.length ? user.rateRules : rate ? [{ id: crypto.randomUUID(), startDate: "2026-01-01", endDate: "", rate, note: "Базовая ставка" }] : [];
+    const status = user.status || (user.active === false ? "fired" : "active");
     return {
       ...user,
       role,
       position: user.position || (role === "admin" ? "Руководитель" : role === "manager" ? "Администратор табеля" : "Сотрудник"),
-      active: user.active !== false,
+      status,
+      active: status !== "fired",
       permissions: normalizePermissions(user.permissions, role),
       rate,
       rateRules: rateRules.map((rule) => ({
@@ -116,6 +119,8 @@ function normalizeState(data) {
     ...project,
     status: project.status || (project.active === false ? "archived" : "active"),
     nightShift: Boolean(project.nightShift),
+    accessMode: project.accessMode || "all",
+    allowedUserIds: Array.isArray(project.allowedUserIds) ? project.allowedUserIds : [],
   }));
   normalized.entries = normalized.entries
     .filter((entry) => entry.userId && entry.projectId && entry.date)
@@ -126,10 +131,22 @@ function normalizeState(data) {
       date: entry.date,
       source: entry.source || "checkin",
       checkedAt: entry.checkedAt || "",
+      endedAt: entry.endedAt || "",
       changedAt: entry.changedAt || "",
       secondObject: Boolean(entry.secondObject),
       night: Boolean(entry.night),
     }));
+  const uniqueEntries = new Map();
+  normalized.entries.forEach((entry) => {
+    const key = `${entry.userId}:${entry.projectId}:${entry.date}`;
+    if (!uniqueEntries.has(key)) uniqueEntries.set(key, entry);
+    else {
+      const stored = uniqueEntries.get(key);
+      if (!stored.endedAt && entry.endedAt) stored.endedAt = entry.endedAt;
+      if (!stored.checkedAt && entry.checkedAt) stored.checkedAt = entry.checkedAt;
+    }
+  });
+  normalized.entries = [...uniqueEntries.values()];
   const entryGroups = new Map();
   normalized.entries.forEach((entry) => {
     const key = `${entry.userId}:${entry.date}`;
@@ -271,6 +288,14 @@ function activeProjects() {
   return state.projects.filter((project) => project.status === "active");
 }
 
+function canUserAccessProject(userId, project) {
+  return project.accessMode !== "selected" || project.allowedUserIds.includes(userId);
+}
+
+function activeProjectsForUser(userId) {
+  return activeProjects().filter((project) => canUserAccessProject(userId, project));
+}
+
 function visibleProjects() {
   return [
     ...state.projects.filter((project) => project.status === "active"),
@@ -280,7 +305,7 @@ function visibleProjects() {
 }
 
 function workers(includeDisabled = false) {
-  return state.users.filter((user) => user.role === "worker" && (includeDisabled || user.active));
+  return state.users.filter((user) => user.role === "worker" && (includeDisabled || user.status !== "fired"));
 }
 
 function admins() {
@@ -298,6 +323,41 @@ function can(user, permission) {
 
 function entriesForUserDate(userId, date) {
   return state.entries.filter((entry) => entry.userId === userId && entry.date === date);
+}
+
+function workdayEndIso(date) {
+  return `${date}T18:00:00`;
+}
+
+function autoRestApplies(entry) {
+  if (!entry || entry.endedAt || entry.night) return false;
+  if (entry.date < today()) return true;
+  return entry.date === today() && new Date().getHours() >= 18;
+}
+
+function effectiveEndedAt(entry) {
+  if (entry?.endedAt) return entry.endedAt;
+  if (autoRestApplies(entry)) return workdayEndIso(entry.date);
+  return "";
+}
+
+function isEntryOpen(entry) {
+  return Boolean(entry && !effectiveEndedAt(entry));
+}
+
+function openEntryForUser(userId, date = today()) {
+  return [...entriesForUserDate(userId, date)].reverse().find(isEntryOpen) || null;
+}
+
+function formatTime(iso) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+}
+
+function workerStatusLabel(worker) {
+  if (worker.status === "vacation") return "В отпуске";
+  if (worker.status === "fired") return "Уволен";
+  return openEntryForUser(worker.id) ? "На объекте" : "Отдыхает";
 }
 
 function entriesForMonth(month) {
@@ -560,14 +620,19 @@ function renderPresence() {
 
 function presenceRow(worker) {
   const entries = entriesForUserDate(worker.id, today());
-  const current = entries.at(-1);
+  const current = openEntryForUser(worker.id);
+  const last = entries.at(-1);
+  const status = workerStatusLabel(worker);
   return `
     <article class="presence-row ${worker.active ? "" : "muted-row"}">
       <div class="presence-person">
         <strong>${worker.name}</strong>
         <span>${worker.position || "Сотрудник"}</span>
       </div>
-      <div class="presence-object">${current ? projectName(current.projectId) : "Нет отметки"}</div>
+      <div class="presence-object">
+        <strong>${current ? projectName(current.projectId) : status}</strong>
+        <span>${current ? `пришел ${formatTime(current.checkedAt)}` : last ? `последний объект: ${projectName(last.projectId)} · ушел ${formatTime(effectiveEndedAt(last))}` : "нет отметки сегодня"}</span>
+      </div>
     </article>
   `;
 }
@@ -577,13 +642,17 @@ function renderSummary() {
   view().innerHTML = `
     <section class="page">
       ${pageHead("Сводка", "Сотрудники, дни и зарплата за выбранный месяц.")}
-      ${monthControl(month)}
+      <div class="summary-tools">
+        ${monthControl(month)}
+        <button class="primary" data-worker-stats>Статистика по сотрудникам</button>
+      </div>
       <div class="card">
         ${summaryTable(month)}
       </div>
     </section>
   `;
   bindMonthControl();
+  document.querySelector("[data-worker-stats]").addEventListener("click", () => openWorkerStatsModal(month));
 }
 
 function summaryTable(month) {
@@ -602,6 +671,38 @@ function summaryTable(month) {
       <table>
         <thead><tr><th>Сотрудник</th><th>Должность</th><th>Дней</th><th>Зарплата за месяц</th><th>Задолженность прошлого месяца</th><th>Оплачено</th><th>Остаток к оплате</th></tr></thead>
         <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function openWorkerStatsModal(month) {
+  openModal(
+    "Статистика по сотрудникам",
+    `<div class="stack">
+      <label>Сотрудник<select id="statsWorker">${workers(true).map((worker) => `<option value="${worker.id}">${worker.name}</option>`).join("")}</select></label>
+      <div id="statsBody"></div>
+    </div>`,
+  );
+  document.querySelector(".modal")?.classList.add("modal-wide");
+  const renderStats = () => {
+    const userId = value("statsWorker");
+    document.querySelector("#statsBody").innerHTML = workerStatsTable(userId, month);
+  };
+  document.querySelector("#statsWorker").addEventListener("change", renderStats);
+  renderStats();
+}
+
+function workerStatsTable(userId, month) {
+  const entries = state.entries
+    .filter((entry) => entry.userId === userId && entry.date.startsWith(month))
+    .sort((a, b) => `${a.date}${a.checkedAt}`.localeCompare(`${b.date}${b.checkedAt}`));
+  if (!entries.length) return `<div class="empty">За месяц отметок нет.</div>`;
+  return `
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Дата</th><th>Объект</th><th>Пришел</th><th>Ушел</th><th>Тип</th></tr></thead>
+        <tbody>${entries.map((entry) => `<tr><td>${entry.date}</td><td>${projectName(entry.projectId)}</td><td>${formatTime(entry.checkedAt)}</td><td>${formatTime(effectiveEndedAt(entry))}</td><td>${entry.night ? "Ночная" : entry.secondObject ? "Второй объект" : "День"}</td></tr>`).join("")}</tbody>
       </table>
     </div>
   `;
@@ -659,7 +760,9 @@ function renderEmployees() {
 }
 
 function employeeTable() {
-  const rows = workers(true)
+  const order = { active: 0, vacation: 1, fired: 2 };
+  const rows = [...workers(true)]
+    .sort((a, b) => (order[a.status] ?? 0) - (order[b.status] ?? 0) || a.name.localeCompare(b.name, "ru"))
     .map(
       (user) => `
         <tr>
@@ -667,11 +770,12 @@ function employeeTable() {
           <td>${user.position || ""}</td>
           <td>${user.login}</td>
           <td>${money(rateForDate(user, today()))}</td>
-          <td>${user.active ? "Активен" : "Отключен"}</td>
+          <td>${employeeStatusLabel(user)}</td>
           <td class="actions">
             <button class="ghost" data-open-worker="${user.id}">Карточка</button>
-            <button class="ghost" data-toggle-user="${user.id}">${user.active ? "Отключить" : "Включить"}</button>
-            <button class="danger" data-delete-user="${user.id}">Удалить</button>
+            <button class="ghost" data-vacation-user="${user.id}">${user.status === "vacation" ? "Вернуть" : "В отпуск"}</button>
+            <button class="ghost" data-fire-user="${user.id}">${user.status === "fired" ? "Нанять" : "Уволить"}</button>
+            ${canDeleteWorker(user.id) ? `<button class="danger" data-delete-user="${user.id}">Удалить ошибочную карточку</button>` : ""}
           </td>
         </tr>
       `,
@@ -688,10 +792,20 @@ function employeeTable() {
 }
 
 function bindEmployeeActions() {
-  document.querySelectorAll("[data-toggle-user]").forEach((button) => {
+  document.querySelectorAll("[data-vacation-user]").forEach((button) => {
     button.addEventListener("click", () => {
-      const user = byId(state.users, button.dataset.toggleUser);
-      user.active = !user.active;
+      const user = byId(state.users, button.dataset.vacationUser);
+      user.status = user.status === "vacation" ? "active" : "vacation";
+      user.active = user.status !== "fired";
+      saveState();
+      render();
+    });
+  });
+  document.querySelectorAll("[data-fire-user]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const user = byId(state.users, button.dataset.fireUser);
+      user.status = user.status === "fired" ? "active" : "fired";
+      user.active = user.status !== "fired";
       saveState();
       render();
     });
@@ -699,11 +813,9 @@ function bindEmployeeActions() {
   document.querySelectorAll("[data-delete-user]").forEach((button) => {
     button.addEventListener("click", () => {
       const user = byId(state.users, button.dataset.deleteUser);
-      if (!confirm(`Удалить сотрудника ${user.name}? Его отметки тоже будут удалены.`)) return;
+      if (!canDeleteWorker(user.id)) return;
+      if (!confirm(`Удалить ошибочную карточку ${user.name}?`)) return;
       state.users = state.users.filter((item) => item.id !== user.id);
-      state.entries = state.entries.filter((entry) => entry.userId !== user.id);
-      state.bonuses = state.bonuses.filter((bonus) => bonus.userId !== user.id);
-      state.payments = state.payments.filter((payment) => payment.userId !== user.id);
       saveState();
       render();
     });
@@ -711,6 +823,16 @@ function bindEmployeeActions() {
   document.querySelectorAll("[data-open-worker]").forEach((button) => {
     button.addEventListener("click", () => openWorkerCard(button.dataset.openWorker));
   });
+}
+
+function employeeStatusLabel(user) {
+  if (user.status === "vacation") return "В отпуске";
+  if (user.status === "fired") return "Уволен";
+  return "Работает";
+}
+
+function canDeleteWorker(userId) {
+  return !state.entries.some((entry) => entry.userId === userId) && !state.bonuses.some((bonus) => bonus.userId === userId) && !state.payments.some((payment) => payment.userId === userId);
 }
 
 function openWorkerCard(userId) {
@@ -852,15 +974,16 @@ function projectTable() {
       (project) => `
         <tr class="${project.status === "archived" ? "muted-row" : ""}">
           <td>${project.name}</td>
-          <td>${projectStatuses[project.status]}</td>
+          <td>${projectStatuses[project.status]} · ${projectAccessLabel(project)}</td>
           <td class="actions">
             <button class="ghost" data-project-night="${project.id}">${project.nightShift ? "Ночь включена" : "Открыть ночь"}</button>
+            <button class="ghost" data-project-access="${project.id}">Доступ сотрудникам</button>
             ${
               project.status === "active"
                 ? `<button class="ghost" data-project-status="${project.id}:paused">На паузу</button><button class="ghost" data-project-status="${project.id}:archived">В архив</button>`
                 : `<button class="ghost" data-project-status="${project.id}:active">Активировать</button>`
             }
-            <button class="danger" data-delete-project="${project.id}">Удалить</button>
+            ${canDeleteProject(project.id) ? `<button class="danger" data-delete-project="${project.id}">Удалить</button>` : ""}
           </td>
         </tr>
       `,
@@ -893,17 +1016,63 @@ function bindProjectActions() {
       render();
     });
   });
+  document.querySelectorAll("[data-project-access]").forEach((button) => {
+    button.addEventListener("click", () => openProjectAccessModal(button.dataset.projectAccess));
+  });
   document.querySelectorAll("[data-delete-project]").forEach((button) => {
     button.addEventListener("click", () => {
       const project = byId(state.projects, button.dataset.deleteProject);
-      if (!confirm(`Удалить объект ${project.name}? Отметки, премии и выплаты по нему тоже будут удалены.`)) return;
+      if (!canDeleteProject(project.id)) return;
+      if (!confirm(`Удалить ошибочно созданный объект ${project.name}?`)) return;
       state.projects = state.projects.filter((item) => item.id !== project.id);
-      state.entries = state.entries.filter((entry) => entry.projectId !== project.id);
-      state.bonuses = state.bonuses.filter((bonus) => bonus.projectId !== project.id);
-      state.payments = state.payments.filter((payment) => payment.projectId !== project.id);
       saveState();
       render();
     });
+  });
+}
+
+function projectAccessLabel(project) {
+  if (project.accessMode !== "selected") return "доступ всем";
+  return project.allowedUserIds.length ? `доступ: ${project.allowedUserIds.map(userName).join(", ")}` : "доступ закрыт";
+}
+
+function canDeleteProject(projectId) {
+  return !state.entries.some((entry) => entry.projectId === projectId) && !state.bonuses.some((bonus) => bonus.projectId === projectId) && !state.payments.some((payment) => payment.projectId === projectId);
+}
+
+function openProjectAccessModal(projectId) {
+  const project = byId(state.projects, projectId);
+  openModal(
+    `Доступ: ${project.name}`,
+    `<form id="projectAccessForm" class="form-grid">
+      <div class="modal-actions">
+        <button type="button" class="primary" data-access-all>Разрешить всем</button>
+        <button type="button" class="ghost" data-access-none>Запретить всем</button>
+      </div>
+      <div class="permission-grid">
+        ${workers(true)
+          .filter((worker) => worker.status !== "fired")
+          .map((worker) => `<label class="check-row"><input type="checkbox" data-project-user="${worker.id}" ${project.accessMode !== "selected" || project.allowedUserIds.includes(worker.id) ? "checked" : ""} /> ${worker.name}</label>`)
+          .join("")}
+      </div>
+      <button class="primary" type="submit">Сохранить доступ</button>
+    </form>`,
+  );
+  document.querySelector("[data-access-all]").addEventListener("click", () => {
+    document.querySelectorAll("[data-project-user]").forEach((input) => (input.checked = true));
+  });
+  document.querySelector("[data-access-none]").addEventListener("click", () => {
+    document.querySelectorAll("[data-project-user]").forEach((input) => (input.checked = false));
+  });
+  document.querySelector("#projectAccessForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const allowed = [...document.querySelectorAll("[data-project-user]:checked")].map((input) => input.dataset.projectUser);
+    const total = [...document.querySelectorAll("[data-project-user]")].length;
+    project.accessMode = allowed.length === total ? "all" : "selected";
+    project.allowedUserIds = allowed;
+    saveState();
+    closeModal();
+    render();
   });
 }
 
@@ -938,11 +1107,12 @@ function projectButtons(month) {
         .map((project) => {
           const accrued = projectAccrued(project.id, month);
           const paid = projectPaid(project.id, month);
+          const balance = Math.max(0, accrued - paid);
           return `
             <button data-open-project="${project.id}" class="object-button">
               <strong>${project.name}</strong>
               <span>${projectStatuses[project.status]}</span>
-              <em>Начислено ${money(accrued)} · оплачено ${money(paid)} · остаток ${money(accrued - paid)}</em>
+              <em>Зарплатный фонд ${money(accrued)} · выплачено ${money(paid)} · остаток ${money(balance)}</em>
             </button>
           `;
         })
@@ -954,6 +1124,7 @@ function projectButtons(month) {
 function projectMonthReport(project, month) {
   const accrued = projectAccrued(project.id, month);
   const paid = projectPaid(project.id, month);
+  const balance = Math.max(0, accrued - paid);
   return `
     <section class="card">
       <div class="card-head">
@@ -961,9 +1132,9 @@ function projectMonthReport(project, month) {
         <button class="ghost" data-back-projects>К объектам</button>
       </div>
       <div class="metrics three">
-        ${metric("Начислено", money(accrued))}
-        ${metric("Оплачено", money(paid))}
-        ${metric("Остаток", money(accrued - paid))}
+        ${metric("Зарплатный фонд", money(accrued))}
+        ${metric("Выплачено", money(paid))}
+        ${metric("Остаток", money(balance))}
       </div>
       ${projectCalendarTable(project, month)}
     </section>
@@ -1376,7 +1547,7 @@ function openPermissionsModal(userId) {
 
 function renderCheckin(user) {
   const todaysEntries = entriesForUserDate(user.id, today());
-  const current = todaysEntries.at(-1);
+  const current = openEntryForUser(user.id);
   const canNight = current && byId(state.projects, current.projectId)?.nightShift && new Date().getHours() >= 18 && !current.night;
   view().innerHTML = `
     <section class="page">
@@ -1385,27 +1556,43 @@ function renderCheckin(user) {
         ${uiMessage ? `<div class="notice">${uiMessage}</div>` : ""}
         <p class="eyebrow">Сегодня</p>
         <h2>${formatDate(today())}</h2>
-        ${todaysEntries.length ? `<button id="secondObjectBtn" class="big-action">Второй объект</button>` : `<button id="checkinBtn" class="big-action">Отметиться на объекте</button>`}
+        ${current ? `<button id="finishWorkBtn" class="big-action">Закончил работу</button>` : `<button id="checkinBtn" class="big-action">Отметиться на объекте</button>`}
         ${
           current
             ? `<div class="current-project"><span>Вы сейчас на объекте</span><strong>${projectName(current.projectId)}${current.night ? " Н" : ""}</strong><div class="actions"><button id="changeProjectBtn" class="ghost">Изменить объект</button>${canNight ? `<button id="nightShiftBtn" class="secondary">Ночная смена</button>` : ""}</div></div>`
-            : `<span class="chip">Сегодня отметок нет</span>`
+            : `<span class="chip">${todaysEntries.length ? "Сейчас отдыхаете" : "Сегодня отметок нет"}</span>`
         }
-        <div class="chips">${todaysEntries.map((entry) => `<span class="chip ${entry.secondObject ? "red" : "green"}">${projectName(entry.projectId)}${entry.night ? " Н" : ""}${entry.checkedAt ? ` · ${entry.checkedAt.slice(11, 16)}` : ""}</span>`).join("")}</div>
+        <div class="entry-history">${todaysEntries.map(checkinHistoryRow).join("") || `<div class="empty">Истории за сегодня пока нет.</div>`}</div>
       </section>
     </section>
   `;
   uiMessage = "";
-  document.querySelector("#checkinBtn")?.addEventListener("click", () => openProjectPicker(user, "first"));
-  document.querySelector("#secondObjectBtn")?.addEventListener("click", () => {
+  document.querySelector("#checkinBtn")?.addEventListener("click", () => {
     if (todaysEntries.length >= 2) {
       uiMessage = "Сегодня уже закрыты два объекта. Третий объект отправьте запросом администратору.";
       render();
       return;
     }
-    openProjectPicker(user, "second");
+    openProjectPicker(user, todaysEntries.length ? "second" : "first");
   });
-  document.querySelector("#changeProjectBtn")?.addEventListener("click", () => openProjectPicker(user, "replace"));
+  document.querySelector("#finishWorkBtn")?.addEventListener("click", () => {
+    current.endedAt = new Date().toISOString();
+    saveState();
+    uiMessage = `Работа на объекте ${projectName(current.projectId)} завершена.`;
+    render();
+  });
+  document.querySelector("#changeProjectBtn")?.addEventListener("click", () => openProjectPicker(user, "replace", current.id));
+  document.querySelectorAll("[data-change-entry]").forEach((button) => {
+    button.addEventListener("click", () => openProjectPicker(user, "replace", button.dataset.changeEntry));
+  });
+  document.querySelectorAll("[data-cancel-entry]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.entries = state.entries.filter((entry) => entry.id !== button.dataset.cancelEntry);
+      saveState();
+      uiMessage = "Работа на объекте отменена.";
+      render();
+    });
+  });
   document.querySelector("#nightShiftBtn")?.addEventListener("click", () => {
     current.night = true;
     current.changedAt = new Date().toISOString();
@@ -1415,8 +1602,25 @@ function renderCheckin(user) {
   });
 }
 
-function openProjectPicker(user, mode = "first") {
-  if (!activeProjects().length) {
+function checkinHistoryRow(entry) {
+  const ended = effectiveEndedAt(entry);
+  return `
+    <div class="history-row ${isEntryOpen(entry) ? "is-open" : ""}">
+      <div>
+        <strong>${projectName(entry.projectId)}${entry.night ? " Н" : ""}</strong>
+        <span>пришел ${formatTime(entry.checkedAt)} · ушел ${formatTime(ended)}</span>
+      </div>
+      <div class="actions">
+        <button class="ghost small-btn" data-change-entry="${entry.id}">Изменить</button>
+        <button class="danger small-btn" data-cancel-entry="${entry.id}">Отменить работу</button>
+      </div>
+    </div>
+  `;
+}
+
+function openProjectPicker(user, mode = "first", entryId = "") {
+  const availableProjects = activeProjectsForUser(user.id);
+  if (!availableProjects.length) {
     uiMessage = "Администратор еще не добавил объекты в работе.";
     render();
     return;
@@ -1432,7 +1636,7 @@ function openProjectPicker(user, mode = "first") {
       ${mode === "second" ? `<div class="notice">Вы хотите завершить работу на первом объекте и отметить второй объект? Если нажали ошибочно, закройте окно.</div>` : ""}
       ${selected.length ? `<div class="notice">Вы уже отмечены: ${selected.map((entry) => projectName(entry.projectId)).join(", ")}. ${mode === "replace" ? "Выберите объект, который должен заменить текущий." : "Выберите второй объект, если пришли на него."}</div>` : ""}
       <div class="project-list">
-        ${activeProjects()
+        ${availableProjects
           .map((project) => `<button class="project-choice" ${(mode === "first" || mode === "second") && selected.some((entry) => entry.projectId === project.id) ? "disabled" : ""} data-project-choice="${project.id}">${project.name}</button>`)
           .join("")}
       </div>
@@ -1440,16 +1644,16 @@ function openProjectPicker(user, mode = "first") {
   `;
   openModal(mode === "replace" ? "Изменить объект" : mode === "second" ? "Второй объект" : "Выберите объект", body);
   document.querySelectorAll("[data-project-choice]").forEach((button) => {
-    button.addEventListener("click", () => handleProjectChoice(user, button.dataset.projectChoice, mode));
+    button.addEventListener("click", () => handleProjectChoice(user, button.dataset.projectChoice, mode, entryId));
   });
 }
 
-function handleProjectChoice(user, projectId, mode) {
+function handleProjectChoice(user, projectId, mode, entryId = "") {
   const entries = entriesForUserDate(user.id, today());
-  if (mode === "replace" && entries.length) {
-    const current = entries.at(-1);
-    current.projectId = projectId;
-    current.changedAt = new Date().toISOString();
+  if (mode === "replace") {
+    const target = state.entries.find((entry) => entry.id === entryId) || entries.at(-1);
+    target.projectId = projectId;
+    target.changedAt = new Date().toISOString();
   } else {
     upsertEntry(user.id, projectId, today(), mode === "second" ? "second-object" : "checkin");
     const entry = entriesForUserDate(user.id, today()).find((item) => item.projectId === projectId);
@@ -1469,9 +1673,10 @@ function renderManualDays(user) {
   view().innerHTML = `
     <section class="page">
       ${pageHead("Внести пропущенные дни", "Можно внести прошедшие дни текущего и предыдущего месяца. Уже отмеченные дни подсвечены зеленым.")}
+      ${uiMessage ? `<div class="notice">${uiMessage}</div>` : ""}
       <form id="manualForm" class="card form-grid">
         <label>Объект
-          <select id="manualProject" required>${activeProjects().map((project) => `<option value="${project.id}">${project.name}</option>`).join("")}</select>
+          <select id="manualProject" required>${activeProjectsForUser(user.id).map((project) => `<option value="${project.id}">${project.name}</option>`).join("")}</select>
         </label>
         ${monthControl(month, { min: prevMonth, max: currentMonth })}
         <div class="month-days" id="monthDays">${monthButtons(month, user.id)}</div>
@@ -1479,6 +1684,7 @@ function renderManualDays(user) {
       </form>
     </section>
   `;
+  uiMessage = "";
   bindMonthControl();
   const selected = new Set();
   document.querySelectorAll("[data-day]:not(:disabled)").forEach((button) => {
@@ -1493,7 +1699,7 @@ function renderManualDays(user) {
     const projectId = value("manualProject");
     selected.forEach((date) => upsertEntry(user.id, projectId, date, "manual"));
     saveState();
-    activeView = "my-days";
+    uiMessage = "Выбранные дни сохранены.";
     render();
   });
 }
@@ -1523,23 +1729,46 @@ function upsertEntry(userId, projectId, date, source) {
 function renderMyDays(user) {
   const month = selectedMonth();
   const mode = localStorage.getItem(MY_DAYS_MODE_KEY) || "objects";
+  const correctionMode = localStorage.getItem(MY_DAYS_CORRECTION_KEY) === "1";
   const entries = state.entries.filter((entry) => entry.userId === user.id && entry.date.startsWith(month));
   view().innerHTML = `
     <section class="page">
       ${pageHead("Мои рабочие дни", "Просмотр по объектам или табель за месяц.")}
+      ${uiMessage ? `<div class="notice">${uiMessage}</div>` : ""}
       ${monthControl(month)}
       <div class="segmented">
         <button class="${mode === "objects" ? "active" : ""}" data-days-mode="objects">По объектам</button>
         <button class="${mode === "sheet" ? "active" : ""}" data-days-mode="sheet">Табель</button>
       </div>
-      <div class="card">${entries.length ? (mode === "objects" ? workerObjectList(entries) : workerMonthSheet(user, month)) : `<div class="empty">За этот месяц отметок нет.</div>`}</div>
+      ${mode === "sheet" ? `<div class="actions"><button class="primary small-btn" data-start-sheet-correction>${correctionMode ? "Отправить выбранные корректировки" : "Отправить корректировки руководителю"}</button>${correctionMode ? `<button class="ghost small-btn" data-cancel-sheet-correction>Отмена</button>` : ""}</div>` : ""}
+      <div class="card">${entries.length || correctionMode ? (mode === "objects" ? workerObjectList(entries) : workerMonthSheet(user, month, { editable: correctionMode })) : `<div class="empty">За этот месяц отметок нет.</div>`}</div>
     </section>
   `;
+  uiMessage = "";
   bindMonthControl();
   document.querySelectorAll("[data-days-mode]").forEach((button) => {
     button.addEventListener("click", () => {
       localStorage.setItem(MY_DAYS_MODE_KEY, button.dataset.daysMode);
       render();
+    });
+  });
+  document.querySelector("[data-start-sheet-correction]")?.addEventListener("click", () => {
+    if (!correctionMode) {
+      localStorage.setItem(MY_DAYS_CORRECTION_KEY, "1");
+      render();
+      return;
+    }
+    sendSheetCorrections(user, month);
+  });
+  document.querySelector("[data-cancel-sheet-correction]")?.addEventListener("click", () => {
+    localStorage.removeItem(MY_DAYS_CORRECTION_KEY);
+    render();
+  });
+  document.querySelectorAll("[data-correct-cell]").forEach((cell) => {
+    cell.addEventListener("click", () => {
+      if (!correctionMode) return;
+      if (cell.dataset.hasEntry === "1") cell.classList.toggle("request-remove");
+      else cell.classList.toggle("request-add");
     });
   });
 }
@@ -1556,14 +1785,17 @@ function workerObjectList(entries) {
   return grouped || `<div class="empty">Отметок нет.</div>`;
 }
 
-function workerMonthSheet(user, month) {
-  const rows = visibleProjects()
+function workerMonthSheet(user, month, options = {}) {
+  const editable = Boolean(options.editable);
+  const projects = editable ? activeProjectsForUser(user.id) : visibleProjects().filter((project) => state.entries.some((entry) => entry.userId === user.id && entry.projectId === project.id && entry.date.startsWith(month)));
+  const rows = projects
     .map((project) => {
       const cells = Array.from({ length: daysInMonth(month) }, (_, index) => {
         const date = dateInMonth(month, index + 1);
         const entry = state.entries.find((item) => item.userId === user.id && item.projectId === project.id && item.date === date);
-        if (!entry) return `<td class="${isWeekend(date) ? "weekend" : ""}"></td>`;
-        return `<td class="${isWeekend(date) ? "weekend " : ""}${entry.secondObject ? "mark-extra" : "mark-full"}">+${entry.night ? "Н" : ""}</td>`;
+        const common = `${isWeekend(date) ? "weekend " : ""}${editable ? "correct-cell " : ""}`;
+        if (!entry) return `<td class="${common}" ${editable ? `data-correct-cell data-has-entry="0" data-project="${project.id}" data-date="${date}"` : ""}></td>`;
+        return `<td class="${common}${entry.secondObject ? "mark-extra" : "mark-full"}" ${editable ? `data-correct-cell data-has-entry="1" data-project="${project.id}" data-date="${date}"` : ""}>+${entry.night ? "Н" : ""}</td>`;
       }).join("");
       return `<tr><td>${project.name}</td>${cells}</tr>`;
     })
@@ -1578,6 +1810,42 @@ function workerMonthSheet(user, month) {
   `;
 }
 
+function sendSheetCorrections(user, month) {
+  const adds = new Map();
+  const removes = new Map();
+  document.querySelectorAll(".request-add, .request-remove").forEach((cell) => {
+    const target = cell.classList.contains("request-add") ? adds : removes;
+    if (!target.has(cell.dataset.project)) target.set(cell.dataset.project, []);
+    target.get(cell.dataset.project).push(cell.dataset.date);
+  });
+  const createRequests = (items, action) => {
+    items.forEach((dates, projectId) => {
+      state.requests.unshift({
+        id: crypto.randomUUID(),
+        userId: user.id,
+        createdAt: new Date().toISOString(),
+        type: "timesheet",
+        projectId,
+        month,
+        action,
+        dates: dates.sort(),
+        text: action === "add" ? "Прошу добавить рабочие дни из табеля." : "Прошу убрать ошибочные отметки из табеля.",
+      });
+    });
+  };
+  createRequests(adds, "add");
+  createRequests(removes, "remove");
+  if (!adds.size && !removes.size) {
+    uiMessage = "Выберите изменения в табеле.";
+    render();
+    return;
+  }
+  saveState();
+  localStorage.removeItem(MY_DAYS_CORRECTION_KEY);
+  uiMessage = "Корректировки отправлены руководителю.";
+  render();
+}
+
 function renderCorrectionRequest(user) {
   const month = selectedMonth();
   view().innerHTML = `
@@ -1590,7 +1858,7 @@ function renderCorrectionRequest(user) {
       </div>
       <form id="requestForm" class="card form-grid">
         <div id="timesheetRequestFields" class="form-grid">
-          <label>Объект<select id="requestProject" required>${visibleProjects().map((project) => `<option value="${project.id}">${project.name}</option>`).join("")}</select></label>
+          <label>Объект<select id="requestProject" required>${activeProjectsForUser(user.id).map((project) => `<option value="${project.id}">${project.name}</option>`).join("")}</select></label>
           ${monthControl(month, { min: previousMonth(monthKey()), max: monthKey() })}
           <label>Действие<select id="requestAction"><option value="add">Добавить рабочие дни</option><option value="remove">Убрать отмеченные дни</option></select></label>
           <div class="month-days" id="requestDays">${requestMonthButtons(month, user.id)}</div>
