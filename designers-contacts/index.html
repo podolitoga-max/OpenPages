@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Дизайнеры от Лёши | Рабочая карта</title>
+  <meta name="description" content="Публичная рабочая карта дизайнерских контактов без телефонов и персональных каналов связи.">
+  <style>
+    :root {
+      --ink:#181817; --muted:#6e665e; --paper:#fbf7ef; --line:#d8cabc;
+      --coal:#22201d; --clay:#9d4f35; --sage:#49695d; --sand:#efe3d1; --white:#fffdf8;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--paper); font-family:Georgia,'Times New Roman',serif; }
+    body:before { content:""; position:fixed; inset:0; pointer-events:none; opacity:.35; background-image:linear-gradient(90deg, rgba(34,32,29,.05) 1px, transparent 1px), linear-gradient(rgba(34,32,29,.045) 1px, transparent 1px); background-size:36px 36px; }
+    .wrap { width:min(1180px, calc(100% - 32px)); margin:0 auto; }
+    header { min-height:42vh; display:grid; align-items:end; padding:52px 0 34px; border-bottom:1px solid var(--line); }
+    .kicker { font:700 12px/1.2 Arial,sans-serif; letter-spacing:.14em; text-transform:uppercase; color:var(--clay); }
+    h1 { max-width:900px; margin:18px 0 18px; font-size:clamp(42px, 8vw, 104px); line-height:.9; letter-spacing:0; font-weight:700; }
+    .lead { max-width:760px; margin:0; color:var(--muted); font:18px/1.55 Arial,sans-serif; }
+    .meta { display:flex; flex-wrap:wrap; gap:10px; margin-top:24px; }
+    .pill { border:1px solid var(--line); background:var(--white); padding:9px 12px; font:700 13px/1 Arial,sans-serif; border-radius:6px; }
+    main { padding:28px 0 56px; }
+    .toolbar { display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:18px; }
+    .toolbar strong { font:700 18px/1 Arial,sans-serif; }
+    .notice { color:var(--muted); font:14px/1.45 Arial,sans-serif; max-width:560px; }
+    .grid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:14px; }
+    .contact-card { background:var(--white); border:1px solid var(--line); border-radius:8px; padding:18px; box-shadow:0 18px 40px rgba(34,32,29,.07); animation:rise .45s ease both; animation-delay:calc(var(--delay) * 70ms); }
+    .card-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+    .id { font:800 12px/1 Arial,sans-serif; color:var(--clay); letter-spacing:.08em; }
+    .status { font:700 12px/1 Arial,sans-serif; color:var(--sage); background:#e7efe9; padding:7px 9px; border-radius:6px; white-space:nowrap; }
+    h2 { margin:0 0 14px; font-size:clamp(24px, 4vw, 36px); line-height:1; letter-spacing:0; }
+    dl { margin:0; display:grid; gap:12px; }
+    dt { margin-bottom:4px; color:var(--clay); font:800 11px/1 Arial,sans-serif; letter-spacing:.12em; text-transform:uppercase; }
+    dd { margin:0; color:var(--coal); font:15px/1.45 Arial,sans-serif; }
+    footer { border-top:1px solid var(--line); padding:18px 0 28px; color:var(--muted); font:13px/1.4 Arial,sans-serif; }
+    @keyframes rise { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+    @media (max-width:760px) { header { min-height:auto; padding-top:34px; } .grid { grid-template-columns:1fr; } .toolbar { align-items:flex-start; flex-direction:column; } }
+  </style>
+</head>
+<body>
+  <header><div class="wrap">
+    <div class="kicker">Рабочая карта контактов</div>
+    <h1>Дизайнеры от Лёши</h1>
+    <p class="lead">Публичная версия базы для быстрого просмотра: кто есть в списке, откуда контакт, какой контекст первого касания и что делать дальше.</p>
+    <div class="meta"><span class="pill">Источник: Лёша / Гильдия Строителей</span><span class="pill">5 контактов</span><span class="pill">Обновлено 23.05.2026</span></div>
+  </div></header>
+  <main class="wrap">
+    <div class="toolbar"><strong>Список</strong><div class="notice">Телефоны, Telegram-ники и прямые ссылки скрыты: публичная страница не хранит персональные каналы связи. Полная база — в закрытом XLSX/CSV.</div></div>
+    <section class="grid">
+<article class="contact-card" style="--delay:1">
+  <div class="card-top">
+    <span class="id">DESIGN-001</span>
+    <span class="status">Новый контакт</span>
+  </div>
+  <h2>Любовь Николаевна</h2>
+  <dl>
+    <div><dt>Источник</dt><dd>Лёша / Гильдия Строителей</dd></div>
+    <div><dt>Контекст</dt><dd>Хорошая и очень экспертная дизайнер; была у Жанны в среду; Жанна рекомендовала ее как одну из лучших и опытных дизайнеров своего сообщества</dd></div>
+    <div><dt>Первое касание</dt><dd>Упомянуть в первом сообщении: Жанна рекомендовала как одну из лучших и опытных дизайнеров своего сообщества</dd></div>
+    <div><dt>Следующее действие</dt><dd>Подготовить и отправить приветственное сообщение с привязкой к Жанне и Лёше</dd></div>
+  </dl>
+</article>
+<article class="contact-card" style="--delay:2">
+  <div class="card-top">
+    <span class="id">DESIGN-002</span>
+    <span class="status">Новый контакт</span>
+  </div>
+  <h2>Алекс / Aleks Design</h2>
+  <dl>
+    <div><dt>Источник</dt><dd>Лёша / Гильдия Строителей</dd></div>
+    <div><dt>Контекст</dt><dd>Хорошая и очень экспертная дизайнер; была у Жанны в среду; Жанна рекомендовала как одну из лучших и опытных дизайнеров своего сообщества</dd></div>
+    <div><dt>Первое касание</dt><dd>В первом сообщении сказать: выхожу по рекомендации Лёши; Жанна также рекомендовала как одну из лучших и опытных дизайнеров своего сообщества</dd></div>
+    <div><dt>Следующее действие</dt><dd>Подготовить и отправить приветственное сообщение с привязкой к Лёше и Жанне</dd></div>
+  </dl>
+</article>
+<article class="contact-card" style="--delay:3">
+  <div class="card-top">
+    <span class="id">DESIGN-003</span>
+    <span class="status">Новый контакт</span>
+  </div>
+  <h2>Софи Платова</h2>
+  <dl>
+    <div><dt>Источник</dt><dd>Лёша / Гильдия Строителей</dd></div>
+    <div><dt>Контекст</dt><dd>Дизайнер из текущего потока контактов; недавно виделась с Игорем</dd></div>
+    <div><dt>Первое касание</dt><dd>В первом сообщении сказать: Лёша дал контакт; недавно виделись с Игорем Подольским; Игорь хотел отдельно познакомиться по рабочим проектам</dd></div>
+    <div><dt>Следующее действие</dt><dd>Подготовить и отправить приветственное сообщение с привязкой к Лёше и недавней встрече с Игорем</dd></div>
+  </dl>
+</article>
+<article class="contact-card" style="--delay:4">
+  <div class="card-top">
+    <span class="id">DESIGN-004</span>
+    <span class="status">Новый контакт</span>
+  </div>
+  <h2>Марина Манжуло</h2>
+  <dl>
+    <div><dt>Источник</dt><dd>Лёша / Гильдия Строителей</dd></div>
+    <div><dt>Контекст</dt><dd>Дизайнер из текущего потока контактов; ходит к Жанне; знает Игоря</dd></div>
+    <div><dt>Первое касание</dt><dd>В первом сообщении сказать: Лёша дал контакт; мы с вами знакомы; знаю что вы тоже ходите к Жанне; хотел отдельно познакомиться по рабочим проектам</dd></div>
+    <div><dt>Следующее действие</dt><dd>Подготовить и отправить приветственное сообщение с привязкой к Лёше и Жанне / личному знакомству с Игорем</dd></div>
+  </dl>
+</article>
+<article class="contact-card" style="--delay:5">
+  <div class="card-top">
+    <span class="id">DESIGN-005</span>
+    <span class="status">Новый контакт</span>
+  </div>
+  <h2>Мария / Архитектурное бюро ProDom</h2>
+  <dl>
+    <div><dt>Источник</dt><dd>Лёша / Гильдия Строителей</dd></div>
+    <div><dt>Контекст</dt><dd>Контакт: Мария. Архитектурное бюро: команда архитекторов, дизайнеров, конструкторов и инженеров; комплексное проектирование загородных участков, ИЖС, интерьеры, ландшафт, инженерные сети; дизайн интерьера жилых и коммерческих помещений</dd></div>
+    <div><dt>Первое касание</dt><dd>В первом сообщении обратиться к Марии; сказать что контакт дал Лёша; отразить: видел презентацию ProDom; интересна связка проектирование / дизайн / реализация; предложить познакомиться и обсудить рабочее взаимодействие</dd></div>
+    <div><dt>Следующее действие</dt><dd>Подготовить и отправить приветственное сообщение Марии из бюро ProDom с привязкой к Лёше</dd></div>
+  </dl>
+</article>
+    </section>
+  </main>
+  <footer><div class="wrap">Публичная страница для ориентира по коммуникациям. Не является CRM и не заменяет закрытую таблицу.</div></footer>
+</body>
+</html>
