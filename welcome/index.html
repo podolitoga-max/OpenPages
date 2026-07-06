@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Игорь Подольский — суперстроитель. Чётко, красиво и в срок.</title>
+<meta name="description" content="Игорь Подольский — строительство и ремонт полного цикла. Точная смета, честные сроки, аккуратный результат. Москва и область.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#15130d;
+  --bg-2:#1b1810;
+  --surface:#211d14;
+  --line:#34301f;
+  --ink:#f4efe1;
+  --ink-dim:#a59e89;
+  --ink-faint:#6f6a58;
+  --accent:#ff5a00;
+  --accent-2:#ffb000;
+  --maxw:1240px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Manrope',sans-serif;
+  font-weight:400;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:var(--accent);color:#fff}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+
+.grid-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(var(--line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:64px 64px;
+  opacity:.32;
+  mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,#000 30%,transparent 78%);
+}
+.grain{
+  position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.045;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.shell{position:relative;z-index:2}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+
+.kicker{
+  font-family:'Oswald',sans-serif;font-weight:500;
+  text-transform:uppercase;letter-spacing:.26em;font-size:12px;
+  color:var(--accent);display:flex;align-items:center;gap:10px;
+}
+.kicker::before{content:"";width:26px;height:2px;background:var(--accent)}
+h2.section-title{
+  font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;
+  letter-spacing:.01em;line-height:.98;
+  font-size:clamp(2.4rem,6vw,4.6rem);
+}
+
+header{
+  position:sticky;top:0;z-index:50;
+  backdrop-filter:blur(9px);
+  background:linear-gradient(180deg,rgba(21,19,13,.94),rgba(21,19,13,.62));
+  border-bottom:1px solid var(--line);
+}
+.nav{display:flex;align-items:center;justify-content:space-between;height:74px}
+.mark{display:flex;align-items:center;gap:13px;font-family:'Oswald',sans-serif}
+.mark .badge{
+  width:42px;height:42px;display:grid;place-items:center;
+  background:var(--accent);color:#15130d;
+  font-weight:700;font-size:16px;letter-spacing:.02em;
+  clip-path:polygon(0 0,100% 0,100% 72%,82% 100%,0 100%);
+}
+.mark .who b{font-weight:600;text-transform:uppercase;letter-spacing:.06em;font-size:15px}
+.mark .who span{display:block;font-family:'Manrope';font-size:11px;color:var(--ink-faint);letter-spacing:.16em;text-transform:uppercase}
+.nav-links{display:flex;gap:34px;align-items:center}
+.nav-links a{
+  font-family:'Oswald',sans-serif;text-transform:uppercase;
+  font-size:13px;letter-spacing:.13em;color:var(--ink-dim);
+  transition:color .2s;
+}
+.nav-links a:hover{color:var(--ink)}
+.nav-cta{
+  font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.1em;
+  font-size:13px;border:1px solid var(--line);padding:11px 18px;color:var(--ink);
+  transition:.2s;
+}
+.nav-cta:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.burger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:6px}
+.burger span{width:24px;height:2px;background:var(--ink)}
+
+.hero{position:relative;padding:clamp(56px,9vw,118px) 0 70px;overflow:hidden}
+.ghost{
+  position:absolute;right:-2vw;top:8%;z-index:0;pointer-events:none;
+  font-family:'Oswald',sans-serif;font-weight:700;
+  font-size:min(40vw,560px);line-height:.8;
+  color:transparent;-webkit-text-stroke:1.5px var(--line);
+  user-select:none;
+}
+.hero-grid{
+  position:relative;z-index:2;
+  display:grid;grid-template-columns:1fr 300px;gap:48px;align-items:end;
+}
+.h1{
+  font-family:'Oswald',sans-serif;font-weight:700;text-transform:uppercase;
+  line-height:.86;letter-spacing:-.005em;
+  font-size:clamp(3.6rem,12.5vw,11rem);
+  margin:22px 0 0;
+}
+.h1 .l2{color:transparent;-webkit-text-stroke:2px var(--ink);display:block}
+.tagline{
+  margin-top:26px;font-family:'Oswald',sans-serif;font-weight:400;
+  font-size:clamp(1.25rem,3.3vw,2.35rem);line-height:1.12;
+  text-transform:uppercase;letter-spacing:.005em;
+}
+.tagline b{color:var(--accent);font-weight:600}
+.lead{
+  margin-top:20px;max-width:46ch;color:var(--ink-dim);
+  font-size:clamp(1rem,1.4vw,1.12rem);
+}
+.cta-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:32px}
+.btn{
+  font-family:'Oswald',sans-serif;text-transform:uppercase;
+  letter-spacing:.1em;font-size:14px;font-weight:500;
+  padding:16px 26px;display:inline-flex;align-items:center;gap:11px;
+  transition:transform .18s,background .2s,color .2s;
+}
+.btn:hover{transform:translateY(-3px)}
+.btn-primary{background:var(--accent);color:#15130d;font-weight:600}
+.btn-primary:hover{background:var(--accent-2)}
+.btn-ghost{border:1px solid var(--line);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--ink)}
+.btn .arr{font-family:'Manrope';font-weight:800}
+
+.spec{
+  border:1px solid var(--line);background:var(--bg-2);
+  padding:24px 22px;
+}
+.spec .status{display:flex;align-items:center;gap:9px;font-size:12px;
+  text-transform:uppercase;letter-spacing:.14em;color:var(--ink-dim);
+  font-family:'Oswald',sans-serif}
+.dot{width:9px;height:9px;border-radius:50%;background:#46d17a;
+  box-shadow:0 0 0 0 rgba(70,209,122,.6);animation:pulse 2.4s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 12px rgba(70,209,122,0)}100%{box-shadow:0 0 0 0 rgba(70,209,122,0)}}
+.spec-row{display:flex;justify-content:space-between;padding:13px 0;
+  border-top:1px solid var(--line);font-size:13px}
+.spec-row:first-of-type{margin-top:16px}
+.spec-row span{color:var(--ink-faint);text-transform:uppercase;
+  letter-spacing:.08em;font-size:11px;font-family:'Oswald',sans-serif}
+.spec-row b{font-family:'Oswald',sans-serif;font-weight:500;letter-spacing:.04em}
+.stamp{
+  margin-top:18px;border:2px solid var(--accent);color:var(--accent);
+  font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;
+  letter-spacing:.12em;font-size:13px;text-align:center;padding:12px;
+  transform:rotate(-2.5deg);
+}
+
+.marquee{
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  background:var(--accent);color:#15130d;overflow:hidden;
+  padding:14px 0;margin-top:64px;
+}
+.marquee-track{display:flex;gap:48px;white-space:nowrap;
+  width:max-content;animation:slide 26s linear infinite}
+.marquee-track span{font-family:'Oswald',sans-serif;font-weight:600;
+  text-transform:uppercase;letter-spacing:.08em;font-size:18px;
+  display:flex;align-items:center;gap:48px}
+.marquee-track span::after{content:"◆";font-size:11px}
+@keyframes slide{to{transform:translateX(-50%)}}
+
+section{padding:clamp(70px,10vw,128px) 0}
+.sec-head{display:flex;align-items:flex-end;justify-content:space-between;
+  gap:30px;margin-bottom:54px;flex-wrap:wrap}
+.sec-head .num{
+  font-family:'Oswald',sans-serif;font-weight:300;font-size:15px;
+  color:var(--ink-faint);letter-spacing:.1em;
+}
+
+.principles{display:grid;grid-template-columns:repeat(3,1fr);
+  border-top:1px solid var(--line)}
+.principle{
+  padding:40px 30px 44px;border-bottom:1px solid var(--line);
+  border-right:1px solid var(--line);position:relative;
+  transition:background .25s;
+}
+.principle:first-child{border-left:1px solid var(--line)}
+.principle:hover{background:var(--bg-2)}
+.principle .pn{
+  font-family:'Oswald',sans-serif;font-weight:700;font-size:54px;
+  color:transparent;-webkit-text-stroke:1.5px var(--accent);line-height:1;
+}
+.principle h3{font-family:'Oswald',sans-serif;font-weight:600;
+  text-transform:uppercase;letter-spacing:.04em;font-size:26px;
+  margin:20px 0 12px}
+.principle p{color:var(--ink-dim);font-size:15px}
+.principle::after{content:"";position:absolute;left:0;bottom:-1px;
+  height:3px;width:0;background:var(--accent);transition:width .35s ease}
+.principle:hover::after{width:100%}
+
+.service{
+  display:grid;grid-template-columns:64px 1fr auto;align-items:center;
+  gap:24px;padding:30px 16px;border-top:1px solid var(--line);
+  cursor:default;transition:padding .25s,background .25s;position:relative;
+}
+.services .service:last-child{border-bottom:1px solid var(--line)}
+.service:hover{padding-left:34px;background:var(--bg-2)}
+.service .sn{font-family:'Oswald',sans-serif;font-weight:300;
+  font-size:14px;color:var(--ink-faint);letter-spacing:.08em}
+.service .st{font-family:'Oswald',sans-serif;font-weight:500;
+  text-transform:uppercase;letter-spacing:.02em;
+  font-size:clamp(1.3rem,3vw,2.1rem);transition:color .2s}
+.service:hover .st{color:var(--accent)}
+.service .sd{color:var(--ink-faint);font-size:13.5px;max-width:30ch;
+  text-align:right}
+.service .go{font-family:'Manrope';font-weight:800;font-size:20px;
+  color:var(--ink-faint);transition:transform .25s,color .25s;
+  justify-self:end}
+.service:hover .go{transform:translate(6px,-6px);color:var(--accent)}
+
+.stats{background:var(--bg-2);border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line)}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr)}
+.stat{padding:46px 26px;border-right:1px solid var(--line);text-align:left}
+.stat:last-child{border-right:none}
+.stat .sv{font-family:'Oswald',sans-serif;font-weight:700;
+  font-size:clamp(3rem,7vw,5.4rem);line-height:.9;color:var(--ink)}
+.stat .sv em{color:var(--accent);font-style:normal}
+.stat .sl{margin-top:14px;font-size:13px;color:var(--ink-dim);
+  text-transform:uppercase;letter-spacing:.1em;font-family:'Oswald',sans-serif}
+
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:0}
+.step{padding:30px 22px 36px;border-left:1px solid var(--line);position:relative}
+.step:last-child{border-right:1px solid var(--line)}
+.step .sc{font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;
+  width:38px;height:38px;display:grid;place-items:center;
+  background:var(--accent);color:#15130d;margin-bottom:22px}
+.step h4{font-family:'Oswald',sans-serif;font-weight:600;
+  text-transform:uppercase;letter-spacing:.03em;font-size:18px;margin-bottom:8px}
+.step p{font-size:13.5px;color:var(--ink-dim)}
+
+.contact{position:relative;overflow:hidden}
+.hazard{
+  height:18px;
+  background:repeating-linear-gradient(45deg,
+    var(--accent-2) 0 22px,#15130d 22px 44px);
+}
+.contact-inner{
+  border:1px solid var(--line);background:var(--bg-2);
+  padding:clamp(36px,6vw,72px);margin-top:54px;
+  display:grid;grid-template-columns:1.3fr 1fr;gap:48px;align-items:center;
+}
+.contact h2{font-family:'Oswald',sans-serif;font-weight:700;
+  text-transform:uppercase;line-height:.95;
+  font-size:clamp(2.2rem,5.5vw,4rem)}
+.contact h2 em{color:var(--accent);font-style:normal}
+.contact .lead{margin-top:18px}
+.contact-list{display:flex;flex-direction:column}
+.cl-row{display:flex;justify-content:space-between;align-items:center;
+  padding:18px 0;border-top:1px solid var(--line)}
+.cl-row:last-child{border-bottom:1px solid var(--line)}
+.cl-row .cl-k{font-family:'Oswald',sans-serif;text-transform:uppercase;
+  letter-spacing:.12em;font-size:11px;color:var(--ink-faint)}
+.cl-row .cl-v{font-family:'Oswald',sans-serif;font-weight:500;
+  font-size:18px;letter-spacing:.02em}
+.cl-row a.cl-v:hover{color:var(--accent)}
+.contact .btn-primary{margin-top:26px;width:100%;justify-content:center}
+
+footer{border-top:1px solid var(--line);padding:46px 0 40px}
+.foot{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;
+  align-items:center}
+.foot small{color:var(--ink-faint);font-size:12.5px}
+.foot .fmark{font-family:'Oswald',sans-serif;font-weight:600;
+  text-transform:uppercase;letter-spacing:.1em;font-size:14px}
+.foot .fmark i{color:var(--accent);font-style:normal}
+
+.reveal{opacity:0;transform:translateY(26px);
+  transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+.hero .anim{opacity:0;transform:translateY(20px);
+  animation:rise .8s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+.d1{animation-delay:.1s!important}.d2{animation-delay:.22s!important}
+.d3{animation-delay:.34s!important}.d4{animation-delay:.46s!important}
+.d5{animation-delay:.58s!important}.d6{animation-delay:.7s!important}
+
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important}
+  .reveal{opacity:1;transform:none}
+}
+@media(max-width:900px){
+  .nav-links{display:none}
+  .burger{display:flex}
+  .nav-links.open{display:flex;position:absolute;top:74px;left:0;right:0;
+    flex-direction:column;gap:0;background:var(--bg-2);
+    border-bottom:1px solid var(--line)}
+  .nav-links.open a,.nav-links.open .nav-cta{padding:18px 28px;
+    border-top:1px solid var(--line);width:100%}
+  .hero-grid{grid-template-columns:1fr}
+  .spec{margin-top:8px}
+  .principles{grid-template-columns:1fr}
+  .principle,.principle:first-child{border-left:1px solid var(--line);
+    border-right:1px solid var(--line)}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .stat:nth-child(2){border-right:none}
+  .stat{border-bottom:1px solid var(--line)}
+  .steps{grid-template-columns:1fr 1fr}
+  .step{border-top:1px solid var(--line)}
+  .step:last-child{border-right:1px solid var(--line)}
+  .contact-inner{grid-template-columns:1fr;gap:30px}
+  .service{grid-template-columns:44px 1fr auto}
+  .service .sd{display:none}
+}
+@media(max-width:520px){
+  .stats-grid{grid-template-columns:1fr}
+  .stat,.stat:nth-child(2){border-right:none}
+  .steps{grid-template-columns:1fr}
+}
+</style>
+<noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="grain"></div>
+
+<div class="shell">
+<header>
+  <div class="wrap nav">
+    <a href="#top" class="mark">
+      <div class="badge">ИП</div>
+      <div class="who"><b>Игорь Подольский</b><span>Строительство · ремонт</span></div>
+    </a>
+    <nav class="nav-links" id="menu">
+      <a href="#principles">Принципы</a>
+      <a href="#services">Услуги</a>
+      <a href="#process">Этапы</a>
+      <a href="#contact" class="nav-cta">Обсудить проект</a>
+    </nav>
+    <div class="burger" id="burger"><span></span><span></span><span></span></div>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="ghost">ИП</div>
+    <div class="wrap hero-grid">
+      <div>
+        <div class="kicker anim d1">Строительство и ремонт полного цикла</div>
+        <h1 class="h1">
+          <span class="anim d2">Игорь</span>
+          <span class="l2 anim d3">Подольский</span>
+        </h1>
+        <div class="tagline anim d4">Суперстроитель. Строю <b>чётко, красиво&nbsp;и&nbsp;в&nbsp;срок.</b></div>
+        <p class="lead anim d5">Беру объект под полную ответственность: от первого замера до уборки после сдачи. Без сюрпризов в смете и без сдвигов по графику.</p>
+        <div class="cta-row anim d6">
+          <a href="#contact" class="btn btn-primary">Обсудить проект <span class="arr">→</span></a>
+          <a href="#services" class="btn btn-ghost">Что я строю</a>
+        </div>
+      </div>
+      <aside class="spec anim d6">
+        <div class="status"><span class="dot"></span> Принимаю заказы</div>
+        <div class="spec-row"><span>Регион</span><b>Москва и область</b></div>
+        <div class="spec-row"><span>Опыт</span><b>10+ лет</b></div>
+        <div class="spec-row"><span>Гарантия</span><b>2 года</b></div>
+        <div class="spec-row"><span>Смета</span><b>Фиксированная</b></div>
+        <div class="stamp">Сдаю день в день</div>
+      </aside>
+    </div>
+  </section>
+
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <span>Чётко</span><span>Красиво</span><span>В срок</span>
+      <span>Честная смета</span><span>Аккуратный результат</span>
+      <span>Чётко</span><span>Красиво</span><span>В срок</span>
+      <span>Честная смета</span><span>Аккуратный результат</span>
+    </div>
+  </div>
+
+  <section id="principles">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <h2 class="section-title">Три правила,<br>на которых стою</h2>
+        <div class="num">[ 01 — Принципы ]</div>
+      </div>
+      <div class="principles">
+        <div class="principle reveal">
+          <div class="pn">01</div>
+          <h3>Чётко</h3>
+          <p>Точная смета до старта работ. Считаю всё: материалы, объёмы, сроки. «Вылезло по ходу» — это не ко мне.</p>
+        </div>
+        <div class="principle reveal d2">
+          <div class="pn">02</div>
+          <h3>Красиво</h3>
+          <p>Ровные углы, аккуратные швы, чистая геометрия. Принимаю объект так, будто живу в нём сам.</p>
+        </div>
+        <div class="principle reveal d3">
+          <div class="pn">03</div>
+          <h3>В срок</h3>
+          <p>График — это обязательство, а не пожелание. Сдаю день в день и фиксирую дату в договоре.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="services">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <h2 class="section-title">Что я строю</h2>
+        <div class="num">[ 02 — Услуги ]</div>
+      </div>
+      <div class="services">
+        <div class="service reveal"><div class="sn">/01</div>
+          <div class="st">Дома и пристройки под ключ</div>
+          <div class="sd">Фундамент, коробка, кровля, инженерия, отделка</div>
+          <div class="go">↗</div></div>
+        <div class="service reveal"><div class="sn">/02</div>
+          <div class="st">Капитальный ремонт квартир</div>
+          <div class="sd">Полный цикл с перепланировкой и согласованием</div>
+          <div class="go">↗</div></div>
+        <div class="service reveal"><div class="sn">/03</div>
+          <div class="st">Чистовая отделка</div>
+          <div class="sd">Стены, полы, потолки — результат как на рендере</div>
+          <div class="go">↗</div></div>
+        <div class="service reveal"><div class="sn">/04</div>
+          <div class="st">Фасады и кровля</div>
+          <div class="sd">Утепление, вентфасад, кровельные системы</div>
+          <div class="go">↗</div></div>
+        <div class="service reveal"><div class="sn">/05</div>
+          <div class="st">Бетон и фундаменты</div>
+          <div class="sd">Ленточные, плитные, сваи — по геологии участка</div>
+          <div class="go">↗</div></div>
+        <div class="service reveal"><div class="sn">/06</div>
+          <div class="st">Электрика и сантехника</div>
+          <div class="sd">Разводка, монтаж, ввод в эксплуатацию</div>
+          <div class="go">↗</div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats">
+    <div class="wrap">
+      <div class="stats-grid">
+        <div class="stat reveal"><div class="sv">10<em>+</em></div><div class="sl">лет на стройке</div></div>
+        <div class="stat reveal d2"><div class="sv">140<em>+</em></div><div class="sl">объектов сдано</div></div>
+        <div class="stat reveal d3"><div class="sv">100<em>%</em></div><div class="sl">сдано в срок</div></div>
+        <div class="stat reveal d4"><div class="sv">0</div><div class="sl">переделок по гарантии</div></div>
+      </div>
+    </div>
+  </div>
+
+  <section id="process">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <h2 class="section-title">Как идёт работа</h2>
+        <div class="num">[ 03 — Этапы ]</div>
+      </div>
+      <div class="steps">
+        <div class="step reveal"><div class="sc">01</div><h4>Замер</h4>
+          <p>Приезжаю на объект, считаю объёмы, слушаю задачу.</p></div>
+        <div class="step reveal d2"><div class="sc">02</div><h4>Смета</h4>
+          <p>Прозрачный расчёт по позициям. Цена фиксируется.</p></div>
+        <div class="step reveal d3"><div class="sc">03</div><h4>Договор</h4>
+          <p>Сроки, этапы и гарантия — на бумаге.</p></div>
+        <div class="step reveal d4"><div class="sc">04</div><h4>Стройка</h4>
+          <p>Работаю по графику, держу вас в курсе с фото.</p></div>
+        <div class="step reveal d5"><div class="sc">05</div><h4>Сдача</h4>
+          <p>Принимаем вместе, убираю за собой. Гарантия 2 года.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact" id="contact">
+    <div class="hazard reveal"></div>
+    <div class="wrap">
+      <div class="contact-inner reveal">
+        <div>
+          <h2>Расскажите про <em>объект</em> — посчитаю по-честному</h2>
+          <p class="lead">Опишите задачу: что, где и к какому сроку. Вернусь со сметой и реальной датой сдачи — без воды.</p>
+          <a href="#" class="btn btn-primary" data-contact="cta">Написать Игорю <span class="arr">→</span></a>
+        </div>
+        <div class="contact-list">
+          <div class="cl-row"><span class="cl-k">Телефон</span>
+            <a class="cl-v" href="tel:+79000000000" data-contact="phone">+7 900 000-00-00</a></div>
+          <div class="cl-row"><span class="cl-k">Telegram</span>
+            <a class="cl-v" href="https://t.me/Cepasso" data-contact="tg">@Cepasso</a></div>
+          <div class="cl-row"><span class="cl-k">Регион</span>
+            <span class="cl-v">Москва · область</span></div>
+          <div class="cl-row"><span class="cl-k">График</span>
+            <span class="cl-v">Пн–Сб, 09:00–20:00</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div class="fmark">Игорь <i>Подольский</i> — суперстроитель</div>
+    <small>© 2026 · Чётко, красиво и в срок · Опубликовано на OpenPages</small>
+  </div>
+</footer>
+</div>
+
+<script>
+var b=document.getElementById('burger'),m=document.getElementById('menu');
+b.addEventListener('click',function(){m.classList.toggle('open')});
+m.querySelectorAll('a').forEach(function(a){
+  a.addEventListener('click',function(){m.classList.remove('open')});
+});
+var io=new IntersectionObserver(function(es){
+  es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});
+},{threshold:.14});
+document.querySelectorAll('.reveal').forEach(function(el){io.observe(el)});
+</script>
+</body>
+</html>
