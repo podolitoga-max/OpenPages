@@ -1,0 +1,1108 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TSK CRM | Отдел продаж</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #141414;
+      --muted: #6d6b66;
+      --line: #ded9cf;
+      --paper: #f6f1e8;
+      --panel: #fffaf0;
+      --panel-strong: #ebe1d1;
+      --coal: #22211f;
+      --green: #226f54;
+      --amber: #b56b12;
+      --red: #a43d2f;
+      --blue: #2b5c8a;
+      --violet: #67508b;
+      --shadow: 0 18px 50px rgba(34, 33, 31, .12);
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(90deg, rgba(34,33,31,.05) 1px, transparent 1px) 0 0 / 34px 34px,
+        linear-gradient(0deg, rgba(34,33,31,.045) 1px, transparent 1px) 0 0 / 34px 34px,
+        var(--paper);
+      color: var(--ink);
+      font-family: Manrope, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    .app {
+      display: grid;
+      grid-template-columns: 272px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 22px 18px;
+      background: var(--coal);
+      color: #fbf4e8;
+      border-right: 1px solid rgba(255,255,255,.08);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid rgba(255,255,255,.13);
+    }
+
+    .brand-title {
+      font-family: Unbounded, Manrope, sans-serif;
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .brand-sub {
+      margin-top: 6px;
+      color: rgba(251,244,232,.67);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .signal {
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(255,255,255,.24);
+      display: grid;
+      place-items: center;
+      color: #f5c16c;
+      font-weight: 900;
+    }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav button {
+      height: 42px;
+      border: 1px solid rgba(255,255,255,.09);
+      background: rgba(255,255,255,.04);
+      color: rgba(251,244,232,.78);
+      text-align: left;
+      padding: 0 12px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 750;
+    }
+
+    .nav button.active {
+      background: #fbf4e8;
+      color: var(--coal);
+      border-color: #fbf4e8;
+    }
+
+    .side-block {
+      margin-top: auto;
+      border: 1px solid rgba(255,255,255,.13);
+      padding: 14px;
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.04);
+    }
+
+    .side-block b {
+      display: block;
+      margin-bottom: 8px;
+      color: #f5c16c;
+    }
+
+    .side-block p {
+      margin: 0;
+      color: rgba(251,244,232,.68);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    main {
+      padding: 24px;
+      min-width: 0;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Unbounded, Manrope, sans-serif;
+      font-size: clamp(28px, 4vw, 48px);
+      line-height: 1.03;
+      max-width: 980px;
+    }
+
+    .subline {
+      margin-top: 10px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      min-height: 40px;
+      border: 1px solid var(--coal);
+      background: var(--coal);
+      color: #fff8ec;
+      border-radius: 6px;
+      padding: 0 13px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .btn.secondary {
+      background: var(--panel);
+      color: var(--coal);
+      border-color: var(--line);
+    }
+
+    .btn.danger {
+      background: var(--red);
+      border-color: var(--red);
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .metric {
+      min-height: 104px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,250,240,.78);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 28px rgba(34, 33, 31, .05);
+    }
+
+    .metric .label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .metric .value {
+      margin-top: 10px;
+      font-family: Unbounded, Manrope, sans-serif;
+      font-size: 27px;
+    }
+
+    .metric .note {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(240px, 1fr) 180px 180px 180px;
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .field, .select, .area {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: rgba(255,250,240,.9);
+      color: var(--ink);
+      border-radius: 6px;
+      outline: none;
+    }
+
+    .field, .select { height: 42px; padding: 0 12px; }
+    .area { min-height: 86px; padding: 10px 12px; resize: vertical; }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(220px, 1fr));
+      gap: 10px;
+      align-items: start;
+      overflow-x: auto;
+      padding-bottom: 10px;
+    }
+
+    .column {
+      min-height: 500px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255,250,240,.62);
+      overflow: hidden;
+    }
+
+    .column-head {
+      min-height: 54px;
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--panel-strong);
+    }
+
+    .column-head strong {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+
+    .count {
+      min-width: 28px;
+      height: 28px;
+      display: inline-grid;
+      place-items: center;
+      background: var(--coal);
+      color: #fff8ec;
+      border-radius: 6px;
+      font-weight: 900;
+      font-size: 13px;
+    }
+
+    .cards {
+      padding: 10px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: var(--radius);
+      padding: 12px;
+      box-shadow: 0 10px 24px rgba(34, 33, 31, .07);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .lead-name {
+      font-weight: 900;
+      line-height: 1.18;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 5px;
+      color: #fff8ec;
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .tag.hot { background: var(--red); }
+    .tag.warm { background: var(--amber); }
+    .tag.cold { background: var(--blue); }
+    .tag.vip { background: var(--violet); }
+
+    .meta {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .money {
+      margin-top: 10px;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .next {
+      margin-top: 10px;
+      padding: 9px;
+      border-left: 4px solid var(--green);
+      background: rgba(34,111,84,.09);
+      font-size: 12px;
+      line-height: 1.35;
+      font-weight: 750;
+    }
+
+    .card-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      margin-top: 12px;
+    }
+
+    .mini {
+      min-height: 34px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--coal);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255,250,240,.78);
+    }
+
+    table {
+      width: 100%;
+      min-width: 980px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+
+    th {
+      background: var(--panel-strong);
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: .04em;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .panel-grid {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 14px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      background: rgba(255,250,240,.78);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 8px 28px rgba(34, 33, 31, .05);
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      font-family: Unbounded, Manrope, sans-serif;
+      font-size: 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .form-grid .wide { grid-column: 1 / -1; }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+    }
+
+    .timeline-item {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .timeline-item b {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .timeline-item span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(20,20,20,.56);
+      z-index: 10;
+    }
+
+    .modal.open { display: flex; }
+
+    .dialog {
+      width: min(760px, 100%);
+      max-height: min(820px, 92vh);
+      overflow: auto;
+      background: var(--paper);
+      border: 1px solid rgba(255,255,255,.32);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .dialog-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .dialog-head h2 {
+      margin: 0;
+      font-family: Unbounded, Manrope, sans-serif;
+      font-size: 22px;
+    }
+
+    .close {
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 6px;
+      font-weight: 900;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      min-width: 240px;
+      max-width: 420px;
+      padding: 12px 14px;
+      color: #fff8ec;
+      background: var(--coal);
+      border-radius: 6px;
+      box-shadow: var(--shadow);
+      font-weight: 800;
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: .2s ease;
+      z-index: 20;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1120px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar {
+        position: relative;
+        height: auto;
+        flex-direction: row;
+        align-items: center;
+        overflow-x: auto;
+      }
+      .brand { border-bottom: 0; padding-bottom: 0; min-width: 220px; }
+      .nav { grid-auto-flow: column; grid-auto-columns: max-content; }
+      .side-block { display: none; }
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .toolbar { grid-template-columns: 1fr 1fr; }
+      .panel-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 680px) {
+      main { padding: 16px; }
+      .topbar { grid-template-columns: 1fr; }
+      .actions { justify-content: stretch; }
+      .btn { flex: 1; }
+      .metrics { grid-template-columns: 1fr; }
+      .toolbar { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .board { grid-template-columns: repeat(5, 260px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div>
+          <div class="brand-title">TSK CRM</div>
+          <div class="brand-sub">sales control</div>
+        </div>
+        <div class="signal">CRM</div>
+      </div>
+      <nav class="nav" aria-label="Разделы CRM">
+        <button class="active" data-view-button="pipeline">Воронка</button>
+        <button data-view-button="tasks">Контроль</button>
+        <button data-view-button="register">Реестр</button>
+        <button data-view-button="settings">Данные</button>
+      </nav>
+      <div class="side-block">
+        <b>Правило отдела</b>
+        <p>Каждый лид должен иметь статус, сумму, ответственного и следующий шаг. Нет следующего шага — лид потерян.</p>
+      </div>
+    </aside>
+
+    <main>
+      <section class="topbar">
+        <div>
+          <h1>Рабочая CRM для продаж ремонта и комплектации</h1>
+          <div class="subline">Лиды, замеры, договоры, дожимы и ежедневный контроль в одном экране.</div>
+        </div>
+        <div class="actions">
+          <button class="btn" id="addLead">Добавить лид</button>
+          <button class="btn secondary" id="exportData">Экспорт</button>
+        </div>
+      </section>
+
+      <section class="metrics" id="metrics"></section>
+
+      <section class="toolbar">
+        <input class="field" id="search" placeholder="Поиск: клиент, телефон, объект, источник">
+        <select class="select" id="statusFilter"></select>
+        <select class="select" id="managerFilter"></select>
+        <select class="select" id="priorityFilter">
+          <option value="all">Все приоритеты</option>
+          <option value="hot">Горячие</option>
+          <option value="warm">Тёплые</option>
+          <option value="cold">Холодные</option>
+          <option value="vip">VIP</option>
+        </select>
+      </section>
+
+      <section class="view active" id="view-pipeline">
+        <div class="board" id="board"></div>
+      </section>
+
+      <section class="view" id="view-tasks">
+        <div class="panel-grid">
+          <div class="panel">
+            <h2>Сегодняшний контроль</h2>
+            <div class="timeline" id="taskList"></div>
+          </div>
+          <div class="panel">
+            <h2>Быстрый регламент</h2>
+            <div class="timeline">
+              <div class="timeline-item"><b>1. Новый лид</b><span>Зафиксировать источник, объект, бюджет, телефон, следующий контакт.</span></div>
+              <div class="timeline-item"><b>2. До замера</b><span>Выяснить объем, сроки, кто принимает решение, есть ли проект/дизайнер.</span></div>
+              <div class="timeline-item"><b>3. После замера</b><span>В тот же день поставить дату КП и контроль дожима.</span></div>
+              <div class="timeline-item"><b>4. Договор</b><span>Не считать продажу закрытой до предоплаты и стартового плана.</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-register">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Клиент</th>
+                <th>Статус</th>
+                <th>Объект</th>
+                <th>Бюджет</th>
+                <th>Ответственный</th>
+                <th>Следующий шаг</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="registerRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="view" id="view-settings">
+        <div class="panel-grid">
+          <div class="panel">
+            <h2>Импорт JSON</h2>
+            <textarea class="area" id="importText" placeholder="Вставить JSON из экспорта CRM"></textarea>
+            <div class="actions" style="justify-content:flex-start;margin-top:10px">
+              <button class="btn" id="importData">Загрузить</button>
+              <button class="btn secondary" id="resetDemo">Вернуть демо</button>
+            </div>
+          </div>
+          <div class="panel">
+            <h2>Как хранится</h2>
+            <div class="timeline">
+              <div class="timeline-item"><b>Локально в браузере</b><span>Данные сохраняются в localStorage на устройстве пользователя.</span></div>
+              <div class="timeline-item"><b>Без сервера</b><span>Это рабочий прототип. Для команды нужна следующая версия с общей базой, логинами и правами.</span></div>
+              <div class="timeline-item"><b>Публичный код</b><span>В репозитории нет секретов и реальных клиентских данных.</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="dialog">
+      <div class="dialog-head">
+        <h2 id="modalTitle">Новый лид</h2>
+        <button class="close" id="closeModal">×</button>
+      </div>
+      <form class="form-grid" id="leadForm">
+        <input type="hidden" id="leadId">
+        <label>Клиент<input class="field" id="client" required placeholder="Имя клиента"></label>
+        <label>Телефон<input class="field" id="phone" placeholder="+7 ..."></label>
+        <label>Источник<input class="field" id="source" placeholder="Рекомендация, сайт, дизайнер"></label>
+        <label>Ответственный<input class="field" id="manager" placeholder="Менеджер"></label>
+        <label>Статус<select class="select" id="status"></select></label>
+        <label>Приоритет<select class="select" id="priority">
+          <option value="hot">Горячий</option>
+          <option value="warm">Тёплый</option>
+          <option value="cold">Холодный</option>
+          <option value="vip">VIP</option>
+        </select></label>
+        <label>Бюджет, ₽<input class="field" id="budget" inputmode="numeric" placeholder="3500000"></label>
+        <label>Дата контроля<input class="field" id="nextDate" type="date"></label>
+        <label class="wide">Объект<input class="field" id="object" placeholder="Квартира, дом, офис, адрес/район"></label>
+        <label class="wide">Следующий шаг<textarea class="area" id="nextStep" placeholder="Позвонить, отправить КП, назначить замер"></textarea></label>
+        <label class="wide">Комментарий<textarea class="area" id="notes" placeholder="Контекст, риски, договорённости"></textarea></label>
+        <div class="actions wide" style="justify-content:flex-start">
+          <button class="btn" type="submit">Сохранить</button>
+          <button class="btn secondary" type="button" id="duplicateLead">Дублировать</button>
+          <button class="btn danger" type="button" id="deleteLead">Удалить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const STORAGE_KEY = "tsk-sales-crm-v1";
+    const statuses = [
+      ["new", "Новый лид"],
+      ["qualify", "Квалификация"],
+      ["measure", "Замер"],
+      ["offer", "КП / смета"],
+      ["contract", "Договор"]
+    ];
+
+    const demoLeads = [
+      {
+        id: crypto.randomUUID(), client: "Алексей Р.", phone: "+7 900 000 11 22",
+        source: "Рекомендация дизайнера", manager: "Игорь", status: "new", priority: "hot",
+        budget: 4200000, object: "Квартира 112 м², премиальная отделка",
+        nextStep: "Уточнить наличие проекта и назначить замер", nextDate: todayPlus(0),
+        notes: "Высокий чек. Важно быстро показать управляемость и сильную техпозицию."
+      },
+      {
+        id: crypto.randomUUID(), client: "Марина К.", phone: "+7 900 000 22 33",
+        source: "Сайт", manager: "Коммерческий", status: "qualify", priority: "warm",
+        budget: 1800000, object: "Дом, частичная отделка",
+        nextStep: "Дожать вводные по срокам и бюджету", nextDate: todayPlus(1),
+        notes: "Не выпускать в замер без понимания объема."
+      },
+      {
+        id: crypto.randomUUID(), client: "Павел и Ольга", phone: "+7 900 000 33 44",
+        source: "Telegram", manager: "Игорь", status: "measure", priority: "vip",
+        budget: 9700000, object: "Квартира 180 м², дизайнерский проект",
+        nextStep: "Подтвердить время замера и список вопросов", nextDate: todayPlus(0),
+        notes: "Потенциально стратегический клиент. Следить за авансом и этапностью."
+      },
+      {
+        id: crypto.randomUUID(), client: "Сергей Б.", phone: "+7 900 000 44 55",
+        source: "Повторный клиент", manager: "Отдел продаж", status: "offer", priority: "hot",
+        budget: 3100000, object: "Офис 240 м²",
+        nextStep: "Отправить КП и поставить контроль ответа", nextDate: todayPlus(2),
+        notes: "Нужно развести материалы и работы отдельными блоками."
+      },
+      {
+        id: crypto.randomUUID(), client: "Анна Д.", phone: "+7 900 000 55 66",
+        source: "Дизайнер", manager: "Коммерческий", status: "contract", priority: "warm",
+        budget: 2650000, object: "Квартира 78 м²",
+        nextStep: "Согласовать дату предоплаты и стартовый график", nextDate: todayPlus(3),
+        notes: "Не закрывать без предоплаты."
+      }
+    ];
+
+    let leads = load();
+
+    const qs = (id) => document.getElementById(id);
+    const fmtMoney = (value) => new Intl.NumberFormat("ru-RU").format(Number(value || 0)) + " ₽";
+    const statusName = (key) => statuses.find(([id]) => id === key)?.[1] || key;
+    const priorityName = (key) => ({ hot: "Горячий", warm: "Тёплый", cold: "Холодный", vip: "VIP" }[key] || key);
+
+    function todayPlus(days) {
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function load() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        return Array.isArray(saved) ? saved : demoLeads;
+      } catch {
+        return demoLeads;
+      }
+    }
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(leads));
+    }
+
+    function filteredLeads() {
+      const query = qs("search").value.trim().toLowerCase();
+      const status = qs("statusFilter").value;
+      const manager = qs("managerFilter").value;
+      const priority = qs("priorityFilter").value;
+
+      return leads.filter((lead) => {
+        const text = [lead.client, lead.phone, lead.source, lead.object, lead.manager, lead.notes].join(" ").toLowerCase();
+        return (!query || text.includes(query))
+          && (status === "all" || lead.status === status)
+          && (manager === "all" || lead.manager === manager)
+          && (priority === "all" || lead.priority === priority);
+      });
+    }
+
+    function render() {
+      renderFilters();
+      renderMetrics();
+      renderBoard();
+      renderTasks();
+      renderRegister();
+      save();
+    }
+
+    function renderFilters() {
+      const statusFilter = qs("statusFilter");
+      const currentStatus = statusFilter.value || "all";
+      statusFilter.innerHTML = `<option value="all">Все статусы</option>` + statuses.map(([id, name]) => `<option value="${id}">${name}</option>`).join("");
+      statusFilter.value = currentStatus;
+
+      const managers = [...new Set(leads.map((lead) => lead.manager).filter(Boolean))].sort();
+      const managerFilter = qs("managerFilter");
+      const currentManager = managerFilter.value || "all";
+      managerFilter.innerHTML = `<option value="all">Все ответственные</option>` + managers.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("");
+      managerFilter.value = managers.includes(currentManager) ? currentManager : "all";
+
+      const statusSelect = qs("status");
+      statusSelect.innerHTML = statuses.map(([id, name]) => `<option value="${id}">${name}</option>`).join("");
+    }
+
+    function renderMetrics() {
+      const total = leads.length;
+      const activeBudget = leads.reduce((sum, lead) => sum + Number(lead.budget || 0), 0);
+      const hot = leads.filter((lead) => lead.priority === "hot" || lead.priority === "vip").length;
+      const overdue = leads.filter((lead) => lead.nextDate && lead.nextDate < todayPlus(0)).length;
+      const contracts = leads.filter((lead) => lead.status === "contract").length;
+      const metrics = [
+        ["Лидов", total, "в активной базе"],
+        ["Потенциал", fmtMoney(activeBudget), "суммарный бюджет"],
+        ["Горячих", hot, "требуют фокуса"],
+        ["Просрочено", overdue, "контрольных шагов"],
+        ["Договоры", contracts, "на финальной стадии"]
+      ];
+      qs("metrics").innerHTML = metrics.map(([label, value, note]) => `
+        <article class="metric">
+          <div class="label">${label}</div>
+          <div class="value">${value}</div>
+          <div class="note">${note}</div>
+        </article>
+      `).join("");
+    }
+
+    function renderBoard() {
+      const data = filteredLeads();
+      qs("board").innerHTML = statuses.map(([status, name]) => {
+        const items = data.filter((lead) => lead.status === status);
+        return `
+          <section class="column">
+            <div class="column-head"><strong>${name}</strong><span class="count">${items.length}</span></div>
+            <div class="cards">${items.map(cardTemplate).join("") || emptyState("Нет лидов")}</div>
+          </section>
+        `;
+      }).join("");
+    }
+
+    function cardTemplate(lead) {
+      return `
+        <article class="card">
+          <div class="card-top">
+            <div class="lead-name">${escapeHtml(lead.client)}</div>
+            <span class="tag ${lead.priority}">${priorityName(lead.priority)}</span>
+          </div>
+          <div class="meta">
+            <span>${escapeHtml(lead.phone || "телефон не указан")}</span>
+            <span>${escapeHtml(lead.object || "объект не указан")}</span>
+            <span>${escapeHtml(lead.source || "источник не указан")} · ${escapeHtml(lead.manager || "без ответственного")}</span>
+          </div>
+          <div class="money">${fmtMoney(lead.budget)}</div>
+          <div class="next">${escapeHtml(lead.nextStep || "Следующий шаг не задан")}<br>${lead.nextDate ? escapeHtml(lead.nextDate) : "без даты"}</div>
+          <div class="card-actions">
+            <button class="mini" onclick="moveLead('${lead.id}', -1)">Назад</button>
+            <button class="mini" onclick="moveLead('${lead.id}', 1)">Вперёд</button>
+            <button class="mini" onclick="openLead('${lead.id}')">Карточка</button>
+            <button class="mini" onclick="copyCall('${lead.id}')">Звонок</button>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderTasks() {
+      const today = todayPlus(0);
+      const tasks = [...leads]
+        .filter((lead) => lead.nextDate)
+        .sort((a, b) => a.nextDate.localeCompare(b.nextDate))
+        .slice(0, 12);
+      qs("taskList").innerHTML = tasks.map((lead) => `
+        <div class="timeline-item">
+          <b>${lead.nextDate < today ? "Просрочено: " : ""}${escapeHtml(lead.client)}</b>
+          <span>${escapeHtml(lead.nextDate)} · ${escapeHtml(lead.nextStep || "следующий шаг не задан")} · ${escapeHtml(lead.phone || "")}</span>
+        </div>
+      `).join("") || emptyState("Контролей нет");
+    }
+
+    function renderRegister() {
+      qs("registerRows").innerHTML = filteredLeads().map((lead) => `
+        <tr>
+          <td><b>${escapeHtml(lead.client)}</b><br>${escapeHtml(lead.phone || "")}</td>
+          <td>${statusName(lead.status)}<br><span class="tag ${lead.priority}">${priorityName(lead.priority)}</span></td>
+          <td>${escapeHtml(lead.object || "")}<br><small>${escapeHtml(lead.source || "")}</small></td>
+          <td><b>${fmtMoney(lead.budget)}</b></td>
+          <td>${escapeHtml(lead.manager || "")}</td>
+          <td>${escapeHtml(lead.nextStep || "")}<br><small>${escapeHtml(lead.nextDate || "")}</small></td>
+          <td><button class="mini" onclick="openLead('${lead.id}')">Открыть</button></td>
+        </tr>
+      `).join("") || `<tr><td colspan="7">${emptyState("Нет лидов")}</td></tr>`;
+    }
+
+    function emptyState(text) {
+      return `<div style="padding:14px;color:var(--muted);font-weight:800">${text}</div>`;
+    }
+
+    function openLead(id) {
+      const lead = leads.find((item) => item.id === id);
+      if (!lead) return;
+      qs("modalTitle").textContent = "Карточка лида";
+      qs("leadId").value = lead.id;
+      qs("client").value = lead.client || "";
+      qs("phone").value = lead.phone || "";
+      qs("source").value = lead.source || "";
+      qs("manager").value = lead.manager || "";
+      qs("status").value = lead.status || "new";
+      qs("priority").value = lead.priority || "warm";
+      qs("budget").value = lead.budget || "";
+      qs("object").value = lead.object || "";
+      qs("nextStep").value = lead.nextStep || "";
+      qs("nextDate").value = lead.nextDate || "";
+      qs("notes").value = lead.notes || "";
+      qs("deleteLead").style.display = "inline-flex";
+      qs("duplicateLead").style.display = "inline-flex";
+      qs("modal").classList.add("open");
+    }
+
+    function newLead() {
+      qs("modalTitle").textContent = "Новый лид";
+      qs("leadForm").reset();
+      qs("leadId").value = "";
+      qs("status").value = "new";
+      qs("priority").value = "warm";
+      qs("nextDate").value = todayPlus(0);
+      qs("deleteLead").style.display = "none";
+      qs("duplicateLead").style.display = "none";
+      qs("modal").classList.add("open");
+    }
+
+    function closeModal() {
+      qs("modal").classList.remove("open");
+    }
+
+    function saveForm(event) {
+      event.preventDefault();
+      const id = qs("leadId").value || crypto.randomUUID();
+      const lead = collectForm(id);
+      const index = leads.findIndex((item) => item.id === id);
+      if (index >= 0) leads[index] = lead;
+      else leads.unshift(lead);
+      closeModal();
+      toast("Лид сохранён");
+      render();
+    }
+
+    function collectForm(id) {
+      return {
+        id,
+        client: qs("client").value.trim(),
+        phone: qs("phone").value.trim(),
+        source: qs("source").value.trim(),
+        manager: qs("manager").value.trim(),
+        status: qs("status").value,
+        priority: qs("priority").value,
+        budget: Number(String(qs("budget").value).replace(/\D/g, "")) || 0,
+        object: qs("object").value.trim(),
+        nextStep: qs("nextStep").value.trim(),
+        nextDate: qs("nextDate").value,
+        notes: qs("notes").value.trim()
+      };
+    }
+
+    function deleteCurrentLead() {
+      const id = qs("leadId").value;
+      leads = leads.filter((lead) => lead.id !== id);
+      closeModal();
+      toast("Лид удалён");
+      render();
+    }
+
+    function duplicateCurrentLead() {
+      const lead = collectForm(crypto.randomUUID());
+      lead.client = lead.client + " — копия";
+      leads.unshift(lead);
+      closeModal();
+      toast("Карточка продублирована");
+      render();
+    }
+
+    function moveLead(id, direction) {
+      const lead = leads.find((item) => item.id === id);
+      if (!lead) return;
+      const index = statuses.findIndex(([status]) => status === lead.status);
+      const nextIndex = Math.max(0, Math.min(statuses.length - 1, index + direction));
+      lead.status = statuses[nextIndex][0];
+      toast("Статус обновлён");
+      render();
+    }
+
+    function copyCall(id) {
+      const lead = leads.find((item) => item.id === id);
+      if (!lead) return;
+      const text = `Звонок: ${lead.client}\nТелефон: ${lead.phone}\nОбъект: ${lead.object}\nСледующий шаг: ${lead.nextStep}`;
+      navigator.clipboard?.writeText(text);
+      toast("Карточка звонка скопирована");
+    }
+
+    function exportData() {
+      const text = JSON.stringify(leads, null, 2);
+      navigator.clipboard?.writeText(text);
+      const blob = new Blob([text], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "tsk-sales-crm-export.json";
+      a.click();
+      URL.revokeObjectURL(url);
+      toast("Экспорт скачан и скопирован");
+    }
+
+    function importData() {
+      try {
+        const parsed = JSON.parse(qs("importText").value);
+        if (!Array.isArray(parsed)) throw new Error("not array");
+        leads = parsed.map((lead) => ({ ...lead, id: lead.id || crypto.randomUUID() }));
+        qs("importText").value = "";
+        toast("Данные загружены");
+        render();
+      } catch {
+        toast("Не смог прочитать JSON");
+      }
+    }
+
+    function resetDemo() {
+      leads = demoLeads.map((lead) => ({ ...lead, id: crypto.randomUUID() }));
+      toast("Демо восстановлено");
+      render();
+    }
+
+    function toast(message) {
+      qs("toast").textContent = message;
+      qs("toast").classList.add("show");
+      setTimeout(() => qs("toast").classList.remove("show"), 1800);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      }[char]));
+    }
+
+    document.querySelectorAll("[data-view-button]").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("[data-view-button]").forEach((item) => item.classList.remove("active"));
+        document.querySelectorAll(".view").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        qs(`view-${button.dataset.viewButton}`).classList.add("active");
+      });
+    });
+
+    ["search", "statusFilter", "managerFilter", "priorityFilter"].forEach((id) => {
+      qs(id).addEventListener("input", render);
+      qs(id).addEventListener("change", render);
+    });
+    qs("addLead").addEventListener("click", newLead);
+    qs("closeModal").addEventListener("click", closeModal);
+    qs("leadForm").addEventListener("submit", saveForm);
+    qs("deleteLead").addEventListener("click", deleteCurrentLead);
+    qs("duplicateLead").addEventListener("click", duplicateCurrentLead);
+    qs("exportData").addEventListener("click", exportData);
+    qs("importData").addEventListener("click", importData);
+    qs("resetDemo").addEventListener("click", resetDemo);
+    qs("modal").addEventListener("click", (event) => {
+      if (event.target.id === "modal") closeModal();
+    });
+
+    render();
+  </script>
+</body>
+</html>
