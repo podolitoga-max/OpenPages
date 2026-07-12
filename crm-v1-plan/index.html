@@ -170,6 +170,9 @@
     }
 
     .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       min-height: 38px;
       border: 1px solid var(--line);
       border-radius: 6px;
@@ -178,6 +181,7 @@
       color: var(--ink);
       cursor: pointer;
       box-shadow: 0 1px 0 rgba(24, 32, 29, .04);
+      text-decoration: none;
     }
 
     .btn.primary {
@@ -591,6 +595,7 @@
         <button data-screen="lead"><span class="dot"></span>Карточка</button>
         <button data-screen="sources"><span class="dot"></span>Источники</button>
         <button data-screen="admin"><span class="dot"></span>Админка</button>
+        <button data-screen="spec"><span class="dot"></span>ТЗ v1</button>
         <button data-screen="login"><span class="dot"></span>Вход</button>
       </nav>
 
@@ -870,6 +875,122 @@
           <div class="role-card"><h3>Ассистент</h3><ul><li>Создает лиды</li><li>Видит очередь</li><li>Квалифицирует</li><li>Без денег и экспорта</li></ul></div>
           <div class="role-card"><h3>Сметчик</h3><ul><li>После замера</li><li>Смета / КП</li><li>Ссылки на файлы</li><li>Без базы продаж</li></ul></div>
           <div class="role-card"><h3>Просмотр</h3><ul><li>Только разрешенные разделы</li><li>Без редактирования</li><li>Без удаления</li><li>Без экспорта</li></ul></div>
+        </div>
+      </section>
+
+      <section class="screen" id="spec">
+        <div class="topbar">
+          <div>
+            <h1>Рабочее ТЗ v1</h1>
+            <p class="subtitle">Этот раздел переводит макет из визуальной идеи в правила разработки: процесс, статусы, права, задачи, импорт, безопасность и приемка.</p>
+          </div>
+          <div class="actions">
+            <a class="btn" href="./architecture.md">Открыть architecture.md</a>
+            <button class="btn primary">Утвердить логику</button>
+          </div>
+        </div>
+
+        <div class="metrics">
+          <div class="metric"><span>Этапов воронки</span><strong>14</strong><em>от нового лида до архива</em></div>
+          <div class="metric"><span>Ролей доступа</span><strong>6</strong><em>серверная проверка прав</em></div>
+          <div class="metric"><span>Автозадач v1</span><strong>5</strong><em>контакт, КП, дожим, договор</em></div>
+          <div class="metric"><span>Критериев приемки</span><strong>16</strong><em>проверяемые сценарии</em></div>
+        </div>
+
+        <div class="panel" style="margin-bottom:14px;">
+          <div class="panel-head"><h2>Путь лида</h2></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Этап</th>
+                  <th>Кто отвечает</th>
+                  <th>Обязательное действие</th>
+                  <th>Что нельзя пропустить</th>
+                  <th>Автозадача</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Новый лид</td><td>Ассистент / менеджер</td><td>Внести источник и контакт</td><td>Источник, контакт, статус</td><td>Связаться с клиентом</td></tr>
+                <tr><td>Квалификация</td><td>Менеджер</td><td>Проверить объект, бюджет, сроки</td><td>Объект, тип работ, район, следующий шаг</td><td>Решить целевой / нецелевой</td></tr>
+                <tr><td>Назначен замер</td><td>Менеджер</td><td>Согласовать дату и адрес</td><td>Дата замера, адрес, ответственный</td><td>Провести замер</td></tr>
+                <tr><td>Замер проведен</td><td>Замерщик / менеджер</td><td>Внести результат и ссылку на материалы</td><td>Результат замера, комментарий</td><td>Подготовить КП</td></tr>
+                <tr><td>КП отправлено</td><td>Менеджер</td><td>Зафиксировать отправку</td><td>Сумма КП, дата, следующий шаг</td><td>Дожим через 1 день</td></tr>
+                <tr><td>Договор / предоплата</td><td>Менеджер / руководитель</td><td>Проверить подпись и оплату</td><td>Сумма, условия, дата оплаты</td><td>Передать в работу</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="panel">
+            <div class="panel-head"><h2>Ограничения переходов</h2></div>
+            <div class="panel-body attention">
+              <div class="alert"><strong>Новый лид не прыгает сразу в КП</strong><span>Нужны контакт, квалификация, замер и подготовка КП.</span></div>
+              <div class="alert"><strong>Замер требует даты и результата</strong><span>Без даты нельзя назначить, без результата нельзя закрыть замер.</span></div>
+              <div class="alert"><strong>КП требует суммы или ссылки</strong><span>Нельзя поставить "КП отправлено" без признака самого КП.</span></div>
+              <div class="alert"><strong>Отказ требует причины</strong><span>Причина идет в аналитику источников и качества лидов.</span></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h2>Кто дожимает после КП</h2></div>
+            <div class="panel-body attention">
+              <div class="alert"><strong>Менеджер</strong><span>Регулярные касания, статусы, отсутствие потерянных клиентов.</span></div>
+              <div class="alert warn"><strong>Игорь</strong><span>Финальные переговоры, скидки, сложные условия, крупные сделки.</span></div>
+              <div class="alert"><strong>Флаг в карточке</strong><span>"Требуется Игорь" выводится отдельным фильтром на дашборде.</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:14px;">
+          <div class="panel-head"><h2>Матрица прав</h2></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Роль</th>
+                  <th>Видит лиды</th>
+                  <th>Создает</th>
+                  <th>Редактирует</th>
+                  <th>Архивирует</th>
+                  <th>Деньги</th>
+                  <th>Экспорт</th>
+                  <th>Настройки</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Админ</td><td>Все</td><td>Да</td><td>Да</td><td>Да</td><td>Да</td><td>Да</td><td>Да</td></tr>
+                <tr><td>Руководитель</td><td>Все лиды отдела</td><td>Да</td><td>Да</td><td>Да</td><td>Да</td><td>По разрешению</td><td>Нет</td></tr>
+                <tr><td>Менеджер</td><td>Свои + очередь</td><td>Да</td><td>Свои</td><td>Нет</td><td>Свои лиды</td><td>Нет</td><td>Нет</td></tr>
+                <tr><td>Ассистент</td><td>Очередь + свои внесенные</td><td>Да</td><td>Первичка</td><td>Нет</td><td>Нет</td><td>Нет</td><td>Нет</td></tr>
+                <tr><td>Сметчик</td><td>После замера / КП</td><td>Нет</td><td>Смета и файлы</td><td>Нет</td><td>По разрешению</td><td>Нет</td><td>Нет</td></tr>
+                <tr><td>Просмотр</td><td>Разрешенные</td><td>Нет</td><td>Нет</td><td>Нет</td><td>По настройке</td><td>Нет</td><td>Нет</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid" style="margin-top:14px;">
+          <div class="panel">
+            <div class="panel-head"><h2>Импорт базы</h2></div>
+            <div class="panel-body attention">
+              <div class="alert"><strong>Обязательные колонки</strong><span>Клиент, телефон, источник, статус, объект, ответственный, следующий шаг, дата контакта.</span></div>
+              <div class="alert"><strong>Дубли</strong><span>Определять по телефону, Telegram или WhatsApp.</span></div>
+              <div class="alert"><strong>Нет ответственного</strong><span>Лид попадает в общую очередь новых.</span></div>
+              <div class="alert danger"><strong>Нет источника</strong><span>Активный импорт запрещен, запись уходит в ошибки импорта.</span></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h2>Критерии приемки</h2></div>
+            <div class="panel-body attention">
+              <div class="alert"><strong>Права работают на сервере</strong><span>Менеджер не видит чужие лиды, ассистент не видит деньги, сметчик видит только свой блок.</span></div>
+              <div class="alert"><strong>Валидация работает</strong><span>Нет источника, следующего шага или причины отказа - система не сохраняет карточку.</span></div>
+              <div class="alert"><strong>Автозадачи создаются</strong><span>После замера - КП, после КП - дожим, после договора - предоплата.</span></div>
+              <div class="alert"><strong>Журнал не затирается</strong><span>Статусы, ответственные, бюджет, экспорт и роли пишутся в audit log.</span></div>
+            </div>
+          </div>
         </div>
       </section>
 
