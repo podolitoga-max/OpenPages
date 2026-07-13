@@ -1,0 +1,852 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TSK CRM v2 Demo</title>
+  <meta name="description" content="Кликабельный прототип CRM TSK: лиды, права, сотрудники, база знаний, архив, запросы на подтверждение и журнал действий.">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Source+Serif+4:opsz,wght@8..60,700&display=swap&subset=cyrillic');
+
+    :root {
+      --bg: #f1eee8;
+      --paper: #fffdfa;
+      --ink: #171512;
+      --muted: #706b62;
+      --line: #ded7ca;
+      --line-strong: #c5bba9;
+      --night: #171512;
+      --green: #315f4d;
+      --blue: #285f78;
+      --red: #a33d32;
+      --gold: #ad7a33;
+      --soft-red: #fae7e3;
+      --soft-blue: #e7f0f3;
+      --soft-green: #e7f1eb;
+      --soft-gold: #f7eedc;
+      --shadow: 0 16px 42px rgba(23, 21, 18, .09);
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(23,21,18,.035) 1px, transparent 1px) 0 0 / 34px 34px,
+        linear-gradient(rgba(23,21,18,.028) 1px, transparent 1px) 0 0 / 34px 34px,
+        var(--bg);
+      font-family: Manrope, system-ui, -apple-system, Segoe UI, sans-serif;
+      letter-spacing: 0;
+    }
+
+    button, input, select, textarea { font: inherit; letter-spacing: 0; }
+    button, .button {
+      min-height: 38px;
+      border: 1px solid var(--night);
+      border-radius: var(--radius);
+      padding: 9px 12px;
+      background: var(--night);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 800;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    button:hover, .button:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(23,21,18,.10); }
+    button.secondary, .button.secondary { background: var(--paper); color: var(--ink); border-color: var(--line-strong); }
+    button.ghost { background: transparent; color: var(--ink); border-color: transparent; box-shadow: none; }
+    button.danger { background: var(--red); border-color: var(--red); }
+    button:disabled { cursor: not-allowed; opacity: .48; transform: none; box-shadow: none; }
+    input, select, textarea {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--ink);
+      padding: 9px 10px;
+    }
+    textarea { min-height: 88px; resize: vertical; }
+    label { display: grid; gap: 6px; color: #39342d; font-size: 12px; font-weight: 800; }
+    a { color: var(--blue); font-weight: 800; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .shell { min-height: 100vh; display: grid; grid-template-columns: 258px minmax(0, 1fr); }
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 18px;
+      background: var(--night);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .brand { padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,.16); }
+    .mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      background: #efd398;
+      color: var(--night);
+      font: 800 25px/1 "Source Serif 4", Georgia, serif;
+      margin-bottom: 12px;
+    }
+    .brand h1 { margin: 0 0 6px; font: 800 26px/1 "Source Serif 4", Georgia, serif; }
+    .brand p { margin: 0; color: #c8c0b5; font-size: 12px; line-height: 1.45; }
+    .nav { display: grid; gap: 7px; }
+    .nav button {
+      width: 100%;
+      justify-content: flex-start;
+      background: transparent;
+      color: #eee8de;
+      border-color: transparent;
+      text-align: left;
+      box-shadow: none;
+    }
+    .nav button.active, .nav button:hover {
+      transform: none;
+      background: rgba(255,255,255,.105);
+      border-color: rgba(255,255,255,.18);
+      box-shadow: none;
+    }
+    .role-card {
+      margin-top: auto;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,.16);
+      display: grid;
+      gap: 9px;
+    }
+    .role-card label { color: #c8c0b5; }
+    .role-card select { background: #25221d; border-color: rgba(255,255,255,.2); color: #fff; }
+    .role-note { color: #bdb5aa; font-size: 12px; line-height: 1.45; }
+
+    .content { padding: 24px; min-width: 0; }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .eyebrow::before { content: ""; width: 18px; height: 2px; background: var(--gold); }
+    h2, h3, p { margin-top: 0; }
+    .title {
+      margin: 5px 0 0;
+      max-width: 880px;
+      font: 800 42px/.98 "Source Serif 4", Georgia, serif;
+    }
+    .subtitle { margin: 8px 0 0; color: var(--muted); line-height: 1.45; max-width: 820px; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .muted { color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .grid { display: grid; gap: 14px; }
+    .metrics { grid-template-columns: repeat(5, minmax(130px, 1fr)); margin-bottom: 14px; }
+    .two { grid-template-columns: minmax(0, 1.35fr) minmax(330px, .65fr); align-items: start; }
+    .three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .metric, .panel {
+      background: rgba(255,253,250,.92);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 1px 0 rgba(23,21,18,.04);
+    }
+    .metric { min-height: 104px; padding: 14px; }
+    .metric .num { font-size: 30px; line-height: 1; font-weight: 800; margin-bottom: 8px; }
+    .metric .label { color: var(--muted); font-size: 12px; font-weight: 800; text-transform: uppercase; }
+    .panel { overflow: hidden; }
+    .panel-head {
+      min-height: 56px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+    .panel-head h2 { margin: 0; font-size: 18px; }
+    .panel-body { padding: 16px; }
+    .toolbar {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr auto;
+      gap: 8px;
+      align-items: end;
+      margin-bottom: 12px;
+    }
+    .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+    table { width: 100%; min-width: 980px; border-collapse: collapse; }
+    th, td { padding: 10px 9px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; font-size: 13px; }
+    th { background: #f7f2e9; color: #514a40; font-size: 11px; text-transform: uppercase; white-space: nowrap; }
+    tr:hover td { background: #fffaf1; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: var(--soft-green);
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .badge.blue { background: var(--soft-blue); color: var(--blue); }
+    .badge.gold { background: var(--soft-gold); color: #875918; }
+    .badge.red { background: var(--soft-red); color: var(--red); }
+    .badge.gray { background: #ebe7df; color: #615a50; }
+    .notice {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 11px;
+      display: grid;
+      gap: 4px;
+    }
+    .notice.warn { border-color: #e4c48b; background: #fff7e7; }
+    .notice.danger { border-color: #e9b8b0; background: #fff0ee; }
+    .notice.ok { border-color: #b8d8c4; background: #f1faf4; }
+    .kanban { display: grid; grid-template-columns: repeat(5, minmax(210px, 1fr)); gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+    .stage { min-width: 210px; border: 1px solid var(--line); border-radius: var(--radius); background: #f9f6ef; }
+    .stage-title { padding: 10px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 800; }
+    .lead-card { margin: 8px; padding: 10px; border: 1px solid #ddd4c5; border-radius: 7px; background: #fff; display: grid; gap: 7px; }
+    .lead-card strong { font-size: 14px; }
+    .lead-card span { color: var(--muted); font-size: 12px; line-height: 1.35; }
+    .form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 11px; }
+    .wide { grid-column: 1 / -1; }
+    .drawer {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: none;
+      padding: 20px;
+      overflow: auto;
+      background: rgba(23,21,18,.44);
+    }
+    .drawer.open { display: grid; place-items: start center; }
+    .drawer-card {
+      width: min(1120px, 100%);
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+    .drawer-head { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
+    .drawer-head h2 { margin: 0; font: 800 31px/1 "Source Serif 4", Georgia, serif; }
+    .timeline { display: grid; gap: 8px; }
+    .event { display: grid; grid-template-columns: 145px minmax(0, 1fr); gap: 10px; padding: 10px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+    .event time { color: var(--muted); font-size: 12px; }
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 50;
+      max-width: 420px;
+      border-radius: var(--radius);
+      background: var(--night);
+      color: #fff;
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+      display: none;
+      font-weight: 800;
+    }
+    .toast.show { display: block; animation: pop .2s ease; }
+    @keyframes pop { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    @media (max-width: 1160px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidebar { position: relative; height: auto; }
+      .nav { grid-template-columns: repeat(3, minmax(130px, 1fr)); }
+      .metrics, .three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .two, .toolbar, .form-grid { grid-template-columns: 1fr; }
+      .title { font-size: 34px; }
+    }
+    @media (max-width: 680px) {
+      .content { padding: 14px; }
+      .topbar { display: grid; }
+      .nav, .metrics, .three { grid-template-columns: 1fr; }
+      .event { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="drawer" class="drawer"></div>
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const STORE = 'tsk-crm-v2-demo-state';
+    const USER_STORE = 'tsk-crm-v2-demo-user';
+
+    const roles = {
+      admin: 'Админ / владелец',
+      head: 'Руководитель',
+      rop: 'РОП',
+      manager: 'Сотрудник продаж',
+      estimator: 'Сметчик',
+      viewer: 'Просмотр'
+    };
+
+    const statuses = {
+      new: 'Новый лид',
+      contacted: 'Первичный контакт',
+      qualified: 'Квалификация',
+      warmup: 'Прогрев',
+      measure: 'Назначен замер',
+      measured: 'Замер проведен',
+      estimate: 'КП / смета',
+      sent: 'КП отправлено',
+      push: 'Дожим',
+      contract: 'Договор',
+      prepay: 'Предоплата',
+      work: 'Взято в работу',
+      reject: 'Отказ',
+      archive: 'Архив'
+    };
+
+    const rank = { new:0, contacted:1, qualified:2, warmup:3, measure:4, measured:5, estimate:6, sent:7, push:8, contract:9, prepay:10, work:11, reject:-1, archive:-2 };
+    const canSeeAllRoles = ['admin', 'head', 'rop'];
+    const canEditDirectRoles = ['admin', 'head', 'rop'];
+    let view = 'dashboard';
+    let filters = { q: '', status: '', owner: '', source: '', archived: false };
+    let currentUserId = Number(localStorage.getItem(USER_STORE) || 1);
+    let state = loadState();
+
+    function seed() {
+      const time = stamp();
+      return {
+        employees: [
+          { id: 1, name: 'Игорь Подольский', username: 'igor', role: 'admin', active: true, hiredAt: '2026-07-01', permissions: { export: true, money: true, deleteArchive: true }, kbClosed: [] },
+          { id: 2, name: 'РОП / руководитель продаж', username: 'rop', role: 'rop', active: true, hiredAt: '2026-07-01', permissions: { export: true, money: true, deleteArchive: true }, kbClosed: [] },
+          { id: 3, name: 'Калюжный Данила', username: 'danila', role: 'manager', active: true, hiredAt: '2026-07-13', permissions: { export: false, money: false, deleteArchive: false }, kbClosed: ['finance'] },
+          { id: 4, name: 'Власова Анна', username: 'anna', role: 'manager', active: true, hiredAt: '2026-07-13', permissions: { export: false, money: false, deleteArchive: false }, kbClosed: ['finance', 'management'] },
+          { id: 5, name: 'Сметчик', username: 'estimate', role: 'estimator', active: true, hiredAt: '2026-07-01', permissions: { export: false, money: true, deleteArchive: false }, kbClosed: ['sales'] }
+        ],
+        sources: [
+          { id: 1, name: 'Telegram-чат ЖК Прокшино', type: 'ЖК / новостройка', link: 'https://t.me/prokshino_chat', locked: true },
+          { id: 2, name: 'Дизайнеры Интерьера Москвы', type: 'дизайнеры / архитекторы', link: 'https://t.me/design_moscow', locked: true },
+          { id: 3, name: 'Рекомендация клиента', type: 'теплый источник', link: 'https://t.me/igorpodolskyi_tsk', locked: true },
+          { id: 4, name: 'VK TSK', type: 'соцсеть', link: 'https://vk.com/club234799613', locked: true }
+        ],
+        leads: [
+          lead(1, 'Мария Петрова', '+7 916 111 22 33', 1, 3, 'sent', 'Квартира 82 м2, есть дизайн-проект, сравнивает КП.', 'Дожать после КП', '2026-07-13', '2400000'),
+          lead(2, 'Андрей / дом', '+7 925 444 55 66', 3, 4, 'contract', 'Дом, отделка под ключ. Нужны условия договора.', 'Подключить Игоря по условиям', '2026-07-14', '3800000'),
+          lead(3, 'Анна / ЖК Прокшино', '@anna_home', 1, 3, 'qualified', 'Новостройка, ключи получены, нужна смета.', 'Назначить замер', '2026-07-13', '1700000'),
+          lead(4, 'Павел / дизайнер', '+7 903 777 80 90', 2, 4, 'warmup', 'Дизайнер ищет надежную реализацию объекта.', 'Отправить презентацию и кейсы', '2026-07-15', ''),
+          lead(5, 'Старый лид / архив', '+7 999 000 00 00', 4, 3, 'archive', 'Нецелевой запрос, перенесен в архив.', 'Нет действий', '', '')
+        ],
+        knowledge: [
+          { id: 1, title: 'Скрипт первичного звонка', section: 'sales', access: 'all', content: 'Цель звонка: понять объект, сроки, бюджет, наличие проекта, следующий шаг. Не продавать хаос, а фиксировать решение.' },
+          { id: 2, title: 'О компании TSK', section: 'company', access: 'all', content: 'Ремонт и отделка под ключ в Москве и МО. Управляемость, ответственность, прозрачная смета, контроль качества.' },
+          { id: 3, title: 'Презентация для дизайнеров', section: 'sales', access: 'all', link: 'https://t.me/igorpodolskyi_tsk', content: 'Для партнеров: сохраняем дизайн-идею, сроки, качество, коммуникацию и честную экономику.' },
+          { id: 4, title: 'Финансовые правила сделки', section: 'finance', access: 'restricted', content: 'Видит руководство и сотрудники с доступом к деньгам. Скидки, предоплаты, условия фиксации договора.' },
+          { id: 5, title: 'Управленческие регламенты', section: 'management', access: 'restricted', content: 'Найм, увольнение, права, аудит, подтверждение правок и ограничения доступа.' }
+        ],
+        requests: [
+          { id: 1, type: 'edit_lead', leadId: 1, sourceId: null, employeeId: 3, status: 'pending', createdAt: time, text: 'Изменить источник лида на Дизайнеры Интерьера Москвы: клиент пришел от дизайнера.', patch: { sourceId: 2 } }
+        ],
+        audit: [
+          event('system', 1, 'Создан демо-контур CRM v2', 'Включены роли, запреты удаления, архив и запросы на подтверждение.', time),
+          event('lead', 1, 'КП отправлено', 'Автоматически создан контроль дожима.', time),
+          event('lead', 2, 'Флаг руководителя', 'Крупная сделка требует участия Игоря.', time)
+        ]
+      };
+    }
+
+    function lead(id, client, contact, sourceId, ownerId, status, need, nextAction, nextDate, budget) {
+      return { id, createdAt: stamp(), client, contact, sourceId, ownerId, status, need, nextAction, nextDate, budget, archivedAt: status === 'archive' ? stamp() : '', locked: true };
+    }
+    function event(entity, entityId, action, details, createdAt = stamp()) {
+      return { id: Date.now() + Math.floor(Math.random() * 100000), entity, entityId, actorId: currentUserId || 1, createdAt, action, details };
+    }
+    function loadState() {
+      const raw = localStorage.getItem(STORE);
+      if (raw) return JSON.parse(raw);
+      const seeded = seed();
+      localStorage.setItem(STORE, JSON.stringify(seeded));
+      return seeded;
+    }
+    function save() { localStorage.setItem(STORE, JSON.stringify(state)); }
+    function stamp() {
+      const d = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+    function today() { return new Date().toISOString().slice(0, 10); }
+    function nextId(list) { return list.length ? Math.max(...list.map(x => x.id)) + 1 : 1; }
+    function h(value) { return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch])); }
+    function currentUser() { return state.employees.find(e => e.id === currentUserId) || state.employees[0]; }
+    function isLeadVisible(lead, user = currentUser()) {
+      if (canSeeAllRoles.includes(user.role)) return true;
+      if (user.role === 'estimator') return ['measured', 'estimate', 'sent', 'push', 'contract', 'prepay', 'work'].includes(lead.status);
+      return lead.ownerId === user.id;
+    }
+    function visibleLeads(includeArchive = false) {
+      return state.leads.filter(l => isLeadVisible(l) && (includeArchive ? l.status === 'archive' : l.status !== 'archive'));
+    }
+    function canEditDirect() { return canEditDirectRoles.includes(currentUser().role); }
+    function canManageEmployees() { return ['admin', 'head', 'rop'].includes(currentUser().role); }
+    function canDeleteArchive() { return Boolean(currentUser().permissions?.deleteArchive) || currentUser().role === 'admin'; }
+    function employee(id) { return state.employees.find(e => e.id === Number(id)); }
+    function source(id) { return state.sources.find(s => s.id === Number(id)); }
+
+    function render() {
+      const u = currentUser();
+      document.getElementById('app').innerHTML = `
+        <div class="shell">
+          <aside class="sidebar">
+            <div class="brand">
+              <div class="mark">P</div>
+              <h1>TSK CRM v2</h1>
+              <p>Объединенный демо-контур: логика v1, кликабельность CRM GPT, права и аудит.</p>
+            </div>
+            <nav class="nav">
+              ${nav('dashboard', 'Сводка')}
+              ${nav('leads', 'Лиды')}
+              ${nav('pipeline', 'Воронка')}
+              ${nav('sources', 'Источники')}
+              ${nav('employees', 'Сотрудники')}
+              ${nav('knowledge', 'База знаний')}
+              ${nav('requests', 'Запросы')}
+              ${nav('archive', 'Архив')}
+              ${nav('audit', 'Журнал')}
+            </nav>
+            <div class="role-card">
+              <label>Проверка доступа
+                <select onchange="switchUser(this.value)">
+                  ${state.employees.map(e => `<option value="${e.id}" ${e.id === currentUserId ? 'selected' : ''}>${h(e.name)} · ${h(roles[e.role])}${e.active ? '' : ' · уволен'}</option>`).join('')}
+                </select>
+              </label>
+              <div class="role-note">Сотрудник видит только свои лиды. Руководитель, РОП и админ видят сводку и каждого сотрудника.</div>
+            </div>
+          </aside>
+          <main class="content">
+            <div class="topbar">
+              <div>
+                <div class="eyebrow">${h(roles[u.role])}</div>
+                <div class="title">${title()}</div>
+                <p class="subtitle">${subtitle()}</p>
+              </div>
+              <div class="actions">
+                <button onclick="openLeadForm()">+ Лид</button>
+                <button class="secondary" onclick="resetDemo()">Сброс демо</button>
+              </div>
+            </div>
+            ${screen()}
+          </main>
+        </div>`;
+    }
+    function nav(id, label) { return `<button class="${view === id ? 'active' : ''}" onclick="go('${id}')">${label}</button>`; }
+    function go(id) { view = id; render(); }
+    function switchUser(id) { currentUserId = Number(id); localStorage.setItem(USER_STORE, currentUserId); render(); toast('Роль переключена: ' + currentUser().name); }
+    function title() {
+      return ({ dashboard:'Рабочая сводка отдела продаж', leads:'Реестр лидов с правами доступа', pipeline:'Воронка по статусам', sources:'Источники и кликабельные ссылки', employees:'Сотрудники, роли и доступы', knowledge:'База знаний и частичные ограничения', requests:'Запросы на подтверждение изменений', archive:'Архив без физического удаления', audit:'Неизменяемая история действий' })[view];
+    }
+    function subtitle() {
+      return ({ dashboard:'Руководитель видит всех, сотрудник видит только свой контур. Все действия пишутся в журнал.',
+        leads:'Заведенного лида нельзя удалить. Сотрудник не редактирует критичные поля напрямую: он отправляет запрос руководителю.',
+        pipeline:'Одна и та же база отображается канбаном, но права видимости сохраняются.',
+        sources:'Все ссылки на источники кликабельные. После заведения источник меняется сотрудником только через запрос подтверждения.',
+        employees:'Можно нанимать, увольнять, менять роли, закрывать разделы базы знаний и управлять разрешениями.',
+        knowledge:'Скрипты, инструкции, информация о компании и презентации доступны всем, но отдельные блоки можно закрыть конкретному сотруднику.',
+        requests:'Правки лида, источника и критичных полей проходят через подтверждение руководителя.',
+        archive:'Сотрудник отправляет лид в архив. Удаление из архива доступно только руководителю с правом.',
+        audit:'Журнал идет последовательно и не редактируется пользователями.' })[view];
+    }
+    function screen() {
+      if (view === 'dashboard') return dashboard();
+      if (view === 'leads') return leadsScreen();
+      if (view === 'pipeline') return pipelineScreen();
+      if (view === 'sources') return sourcesScreen();
+      if (view === 'employees') return employeesScreen();
+      if (view === 'knowledge') return knowledgeScreen();
+      if (view === 'requests') return requestsScreen();
+      if (view === 'archive') return archiveScreen();
+      if (view === 'audit') return auditScreen();
+      return '';
+    }
+
+    function dashboard() {
+      const leads = visibleLeads(false);
+      const all = state.leads.filter(l => l.status !== 'archive');
+      const base = canSeeAllRoles.includes(currentUser().role) ? all : leads;
+      const overdue = base.filter(l => l.nextDate && l.nextDate < today() && !['work', 'reject'].includes(l.status)).length;
+      const activeEmployees = state.employees.filter(e => e.active && ['manager', 'rop'].includes(e.role));
+      return `
+        <div class="grid metrics">
+          ${metric(base.length, currentUser().role === 'manager' ? 'Мои лиды' : 'Все активные')}
+          ${metric(overdue, 'Просрочено')}
+          ${metric(state.requests.filter(r => r.status === 'pending').length, 'Запросы')}
+          ${metric(state.leads.filter(l => l.status === 'archive').length, 'Архив')}
+          ${metric(activeEmployees.length, 'Активные сотрудники')}
+        </div>
+        <div class="grid two">
+          <section class="panel">
+            <div class="panel-head"><h2>Сводка по сотрудникам</h2><button class="secondary" onclick="go('employees')">Доступы</button></div>
+            <div class="panel-body">${employeeSummary()}</div>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><h2>Что заложено в v2</h2></div>
+            <div class="panel-body grid">
+              <div class="notice ok"><b>Права видимости</b><span class="muted">Сотрудник видит только свои лиды и свои наработки.</span></div>
+              <div class="notice warn"><b>Правки через подтверждение</b><span class="muted">Источник, ответственный и критичные поля меняются только после одобрения.</span></div>
+              <div class="notice danger"><b>Удаления нет</b><span class="muted">Лид отправляется в архив, физическое удаление только из архива руководителем.</span></div>
+              <div class="notice"><b>Журнал неизменяемый</b><span class="muted">История действий дописывается последовательно.</span></div>
+            </div>
+          </section>
+        </div>`;
+    }
+    function metric(num, label) { return `<div class="metric"><div class="num">${h(num)}</div><div class="label">${h(label)}</div></div>`; }
+    function employeeSummary() {
+      const rows = state.employees.filter(e => e.active).map(e => {
+        const mine = state.leads.filter(l => l.ownerId === e.id && l.status !== 'archive');
+        return `<tr><td><b>${h(e.name)}</b><div class="muted">${h(roles[e.role])}</div></td><td>${mine.length}</td><td>${mine.filter(l => l.nextDate && l.nextDate < today()).length}</td><td>${mine.filter(l => rank[l.status] >= 7).length}</td><td>${e.permissions.money ? 'да' : 'нет'}</td></tr>`;
+      }).join('');
+      return `<div class="table-wrap"><table><thead><tr><th>Сотрудник</th><th>Лиды</th><th>Просрочено</th><th>КП+</th><th>Деньги</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    }
+
+    function leadsScreen() {
+      const rows = filteredLeads(false);
+      return `
+        <div class="toolbar">
+          <label>Поиск<input value="${h(filters.q)}" oninput="filters.q=this.value;render()" placeholder="клиент, контакт, задача"></label>
+          <label>Статус<select onchange="filters.status=this.value;render()"><option value="">Все</option>${Object.entries(statuses).filter(([k]) => k !== 'archive').map(([k,v]) => `<option value="${k}" ${filters.status===k?'selected':''}>${h(v)}</option>`).join('')}</select></label>
+          <label>Сотрудник<select onchange="filters.owner=this.value;render()" ${canSeeAllRoles.includes(currentUser().role) ? '' : 'disabled'}><option value="">Все</option>${state.employees.map(e => `<option value="${e.id}" ${String(filters.owner)===String(e.id)?'selected':''}>${h(e.name)}</option>`).join('')}</select></label>
+          <label>Источник<select onchange="filters.source=this.value;render()"><option value="">Все</option>${state.sources.map(s => `<option value="${s.id}" ${String(filters.source)===String(s.id)?'selected':''}>${h(s.name)}</option>`).join('')}</select></label>
+          <button onclick="openLeadForm()">+ Лид</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>ID</th><th>Клиент</th><th>Источник</th><th>Статус</th><th>Ответственный</th><th>Следующее действие</th><th>Бюджет</th><th></th></tr></thead>
+          <tbody>${rows.map(leadRow).join('') || `<tr><td colspan="8"><div class="muted">Нет доступных лидов.</div></td></tr>`}</tbody>
+        </table></div>`;
+    }
+    function filteredLeads(includeArchive) {
+      const q = filters.q.toLowerCase().trim();
+      return visibleLeads(includeArchive).filter(l => {
+        const blob = [l.client, l.contact, l.need, l.nextAction, source(l.sourceId)?.name, employee(l.ownerId)?.name].join(' ').toLowerCase();
+        if (q && !blob.includes(q)) return false;
+        if (filters.status && l.status !== filters.status) return false;
+        if (filters.owner && Number(l.ownerId) !== Number(filters.owner)) return false;
+        if (filters.source && Number(l.sourceId) !== Number(filters.source)) return false;
+        return true;
+      }).sort((a,b) => b.id - a.id);
+    }
+    function leadRow(l) {
+      const money = currentUser().permissions.money || canSeeAllRoles.includes(currentUser().role) ? (l.budget ? Number(l.budget).toLocaleString('ru-RU') + ' ₽' : 'не указан') : 'закрыто';
+      return `<tr>
+        <td>${l.id}</td>
+        <td><b>${h(l.client)}</b><div class="muted">${h(l.contact)}</div></td>
+        <td>${sourceLink(source(l.sourceId))}</td>
+        <td>${statusBadge(l.status)}</td>
+        <td>${h(employee(l.ownerId)?.name || 'не назначен')}</td>
+        <td>${h(l.nextAction)}<div class="muted">${h(l.nextDate)}</div></td>
+        <td>${h(money)}</td>
+        <td><button class="secondary" onclick="openLead(${l.id})">Открыть</button></td>
+      </tr>`;
+    }
+    function sourceLink(s) {
+      if (!s) return '';
+      return `<b>${h(s.name)}</b><div class="muted">${h(s.type)}</div>${s.link ? `<a href="${h(s.link)}" target="_blank" rel="noopener">открыть источник</a>` : ''}`;
+    }
+    function statusBadge(status) {
+      const cls = status === 'archive' || status === 'reject' ? 'red' : rank[status] >= 8 ? 'gold' : rank[status] >= 4 ? 'blue' : '';
+      return `<span class="badge ${cls}">${h(statuses[status])}</span>`;
+    }
+
+    function pipelineScreen() {
+      const groups = ['new', 'qualified', 'measure', 'sent', 'contract'];
+      return `<section class="panel"><div class="panel-body"><div class="kanban">
+        ${groups.map(g => {
+          const cards = visibleLeads(false).filter(l => l.status === g || (g === 'qualified' && ['contacted','qualified','warmup'].includes(l.status)) || (g === 'sent' && ['estimate','sent','push'].includes(l.status)));
+          return `<div class="stage"><div class="stage-title"><span>${h(statuses[g])}</span><span>${cards.length}</span></div>${cards.map(l => `<article class="lead-card"><strong>${h(l.client)}</strong><span>${h(employee(l.ownerId)?.name)} · ${h(l.nextAction)}</span><div>${statusBadge(l.status)}</div><button class="secondary" onclick="openLead(${l.id})">Открыть</button></article>`).join('')}</div>`;
+        }).join('')}
+      </div></div></section>`;
+    }
+
+    function sourcesScreen() {
+      return `<section class="panel">
+        <div class="panel-head"><h2>Источники лидов</h2><button onclick="openSourceForm()">+ Источник</button></div>
+        <div class="panel-body">
+          <div class="table-wrap"><table>
+            <thead><tr><th>ID</th><th>Источник</th><th>Тип</th><th>Лиды</th><th>КП+</th><th>Статус</th><th></th></tr></thead>
+            <tbody>${state.sources.map(s => {
+              const leads = state.leads.filter(l => l.sourceId === s.id);
+              return `<tr><td>${s.id}</td><td>${sourceLink(s)}</td><td>${h(s.type)}</td><td>${leads.length}</td><td>${leads.filter(l => rank[l.status] >= 7).length}</td><td>${s.locked ? '<span class="badge gold">защищен</span>' : '<span class="badge">новый</span>'}</td><td><button class="secondary" onclick="openSourceForm(${s.id})">${canEditDirect() ? 'Ред.' : 'Запросить правку'}</button></td></tr>`;
+            }).join('')}</tbody>
+          </table></div>
+        </div>
+      </section>`;
+    }
+
+    function employeesScreen() {
+      if (!canManageEmployees()) return `<section class="panel"><div class="panel-body"><div class="notice danger"><b>Раздел закрыт</b><span class="muted">Сотрудник не управляет наймом, увольнением и правами.</span></div></div></section>`;
+      return `<section class="panel">
+        <div class="panel-head"><h2>Управление сотрудниками</h2><button onclick="openEmployeeForm()">+ Нанять</button></div>
+        <div class="panel-body"><div class="table-wrap"><table>
+          <thead><tr><th>Сотрудник</th><th>Роль</th><th>Статус</th><th>Права</th><th>Закрытые разделы БЗ</th><th></th></tr></thead>
+          <tbody>${state.employees.map(e => `<tr><td><b>${h(e.name)}</b><div class="muted">@${h(e.username)} · нанят ${h(e.hiredAt)}</div></td><td>${h(roles[e.role])}</td><td>${e.active ? '<span class="badge">работает</span>' : '<span class="badge red">уволен</span>'}</td><td>${e.permissions.money ? 'деньги ' : ''}${e.permissions.export ? 'экспорт ' : ''}${e.permissions.deleteArchive ? 'удаление архива' : ''}</td><td>${h(e.kbClosed.join(', ') || 'нет')}</td><td class="actions"><button class="secondary" onclick="openEmployeeForm(${e.id})">Ред.</button>${e.active ? `<button class="danger" onclick="fireEmployee(${e.id})">Уволить</button>` : `<button onclick="hireBack(${e.id})">Вернуть</button>`}</td></tr>`).join('')}</tbody>
+        </table></div></div>
+      </section>`;
+    }
+
+    function knowledgeScreen() {
+      const u = currentUser();
+      const items = state.knowledge.filter(k => k.access === 'all' || canSeeAllRoles.includes(u.role) || !u.kbClosed.includes(k.section));
+      const closed = state.knowledge.filter(k => !items.includes(k));
+      return `<div class="grid two">
+        <section class="panel"><div class="panel-head"><h2>Доступные материалы</h2><button class="secondary" onclick="openKnowledgeForm()">+ Материал</button></div><div class="panel-body grid">${items.map(k => `<div class="notice"><b>${h(k.title)}</b><span class="muted">${h(k.section)} · ${k.access === 'all' ? 'видят все' : 'ограниченный доступ'}</span><div>${h(k.content)}</div>${k.link ? `<a href="${h(k.link)}" target="_blank" rel="noopener">открыть ссылку</a>` : ''}</div>`).join('')}</div></section>
+        <section class="panel"><div class="panel-head"><h2>Закрыто для текущей роли</h2></div><div class="panel-body grid">${closed.map(k => `<div class="notice danger"><b>${h(k.title)}</b><span class="muted">Закрыто настройками сотрудника</span></div>`).join('') || '<div class="notice ok"><b>Нет закрытых блоков</b><span class="muted">Текущий пользователь видит всю базу знаний.</span></div>'}</div></section>
+      </div>`;
+    }
+
+    function requestsScreen() {
+      const rows = state.requests.filter(r => canSeeAllRoles.includes(currentUser().role) || r.employeeId === currentUser().id);
+      return `<section class="panel"><div class="panel-head"><h2>Запросы правок</h2><button class="secondary" onclick="openRequestForm()">+ Запрос</button></div><div class="panel-body"><div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Тип</th><th>Кто запросил</th><th>Суть</th><th>Статус</th><th></th></tr></thead>
+        <tbody>${rows.map(r => `<tr><td>${r.id}</td><td>${h(r.type)}</td><td>${h(employee(r.employeeId)?.name)}</td><td>${h(r.text)}</td><td>${requestBadge(r.status)}</td><td>${r.status === 'pending' && canSeeAllRoles.includes(currentUser().role) ? `<button onclick="approveRequest(${r.id})">Одобрить</button><button class="danger" onclick="declineRequest(${r.id})">Отклонить</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="6">Запросов нет.</td></tr>'}</tbody>
+      </table></div></div></section>`;
+    }
+    function requestBadge(s) { return `<span class="badge ${s === 'pending' ? 'gold' : s === 'approved' ? '' : 'red'}">${s === 'pending' ? 'на подтверждении' : s === 'approved' ? 'одобрено' : 'отклонено'}</span>`; }
+
+    function archiveScreen() {
+      const rows = filteredLeads(true);
+      return `<section class="panel"><div class="panel-head"><h2>Архив лидов</h2><span class="muted">Физическое удаление доступно только руководителю с правом.</span></div><div class="panel-body"><div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Клиент</th><th>Источник</th><th>Ответственный</th><th>Дата архива</th><th></th></tr></thead>
+        <tbody>${rows.map(l => `<tr><td>${l.id}</td><td><b>${h(l.client)}</b><div class="muted">${h(l.contact)}</div></td><td>${sourceLink(source(l.sourceId))}</td><td>${h(employee(l.ownerId)?.name)}</td><td>${h(l.archivedAt)}</td><td><button class="secondary" onclick="restoreLead(${l.id})">Вернуть</button>${canDeleteArchive() ? `<button class="danger" onclick="deleteFromArchive(${l.id})">Удалить</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="6">Архив пуст или недоступен.</td></tr>'}</tbody>
+      </table></div></div></section>`;
+    }
+
+    function auditScreen() {
+      return `<section class="panel"><div class="panel-head"><h2>Последовательная история</h2><span class="muted">Записи не редактируются и не удаляются в интерфейсе.</span></div><div class="panel-body timeline">${state.audit.slice().reverse().map(a => `<div class="event"><time>${h(a.createdAt)}<br>${h(employee(a.actorId)?.name || 'system')}</time><div><b>${h(a.action)}</b><div class="muted">${h(a.entity)} #${h(a.entityId)}</div><div>${h(a.details)}</div></div></div>`).join('')}</div></section>`;
+    }
+
+    function openSourceForm(id = 0) {
+      const s = id ? source(id) : {};
+      const direct = !id || canEditDirect();
+      openDrawer(`<div class="drawer-head"><div><h2>${id ? (direct ? 'Редактировать источник' : 'Запрос правки источника') : 'Новый источник'}</h2><div class="muted">${id && !direct ? 'Заведенный источник меняется сотрудником только после подтверждения руководителя.' : 'Ссылки на источники должны быть кликабельными.'}</div></div><button class="ghost" onclick="closeDrawer()">Закрыть</button></div>
+        <form class="form-grid" onsubmit="saveSourceForm(event, ${id})">
+          ${input('name','Название источника',s.name,true)}
+          ${input('type','Тип источника',s.type,true)}
+          <label class="wide">Ссылка<input name="link" value="${h(s.link || '')}" placeholder="https://..." type="url"></label>
+          <div class="wide actions"><button>${direct ? 'Сохранить' : 'Отправить запрос'}</button></div>
+        </form>`);
+    }
+
+    function saveSourceForm(event, id) {
+      event.preventDefault();
+      const data = Object.fromEntries(new FormData(event.target).entries());
+      const patch = { name: data.name.trim(), type: data.type.trim(), link: data.link.trim(), locked: true };
+      if (!id) {
+        const item = { id: nextId(state.sources), ...patch };
+        state.sources.push(item);
+        state.audit.push(eventLog('source', item.id, 'Источник создан', item.name));
+        save(); closeDrawer(); render(); toast('Источник создан');
+        return;
+      }
+      if (!canEditDirect()) {
+        state.requests.push({ id: nextId(state.requests), type: 'edit_source', leadId: null, sourceId: id, employeeId: currentUser().id, status: 'pending', createdAt: stamp(), text: 'Запрос правки источника #' + id + ': ' + patch.name, patch });
+        state.audit.push(eventLog('request', id, 'Создан запрос правки источника', patch.name));
+        save(); closeDrawer(); render(); toast('Запрос по источнику отправлен');
+        return;
+      }
+      Object.assign(source(id), patch);
+      state.audit.push(eventLog('source', id, 'Источник отредактирован', patch.name));
+      save(); closeDrawer(); render(); toast('Источник обновлен');
+    }
+
+    function openLead(id) {
+      const l = state.leads.find(x => x.id === id);
+      if (!l || !isLeadVisible(l)) return toast('Нет доступа к этому лиду');
+      const history = state.audit.filter(a => a.entity === 'lead' && a.entityId === id);
+      openDrawer(`
+        <div class="drawer-head">
+          <div><h2>${h(l.client)}</h2><div class="muted">${sourceLink(source(l.sourceId))}</div></div>
+          <div class="actions"><button class="secondary" onclick="openLeadForm(${l.id})">${canEditDirect() ? 'Редактировать' : 'Запросить правку'}</button><button class="danger" onclick="archiveLead(${l.id})">В архив</button><button class="ghost" onclick="closeDrawer()">Закрыть</button></div>
+        </div>
+        <div class="grid two">
+          <section class="panel"><div class="panel-head"><h2>Карточка</h2></div><div class="panel-body">
+            <dl style="display:grid;grid-template-columns:170px 1fr;gap:8px 12px">
+              ${dl('Статус', statusBadge(l.status))}${dl('Контакт', h(l.contact))}${dl('Ответственный', h(employee(l.ownerId)?.name))}${dl('Бюджет', h(currentUser().permissions.money || canSeeAllRoles.includes(currentUser().role) ? (l.budget || 'не указан') : 'закрыто'))}${dl('Задача', h(l.need))}${dl('Следующее действие', h(l.nextAction + ' · ' + l.nextDate))}
+            </dl>
+          </div></section>
+          <section class="panel"><div class="panel-head"><h2>Добавить действие</h2></div><div class="panel-body">
+            <form class="grid" onsubmit="addLeadAction(event, ${l.id})">
+              <label>Действие<input name="action" required placeholder="звонок, сообщение, КП, дожим"></label>
+              <label>Комментарий<textarea name="details" required></textarea></label>
+              <button>Записать в историю</button>
+            </form>
+          </div></section>
+        </div>
+        <section class="panel" style="margin-top:14px"><div class="panel-head"><h2>История лида</h2></div><div class="panel-body timeline">${history.map(a => `<div class="event"><time>${h(a.createdAt)}<br>${h(employee(a.actorId)?.name || '')}</time><div><b>${h(a.action)}</b><div>${h(a.details)}</div></div></div>`).join('') || '<div class="muted">Истории пока нет.</div>'}</div></section>`);
+    }
+    function dl(k, v) { return `<dt style="font-weight:800;color:#514a40">${h(k)}</dt><dd style="margin:0;word-break:break-word">${v || '<span class="muted">нет</span>'}</dd>`; }
+
+    function openLeadForm(id = 0) {
+      const l = id ? state.leads.find(x => x.id === id) : {};
+      const direct = !id || canEditDirect();
+      openDrawer(`
+        <div class="drawer-head"><div><h2>${id ? (direct ? 'Редактировать лид' : 'Запрос правки лида') : 'Новый лид'}</h2><div class="muted">${id && !direct ? 'Сотрудник не меняет заведенного лида напрямую. Будет создан запрос руководителю.' : 'Источник и следующий шаг обязательны.'}</div></div><button class="ghost" onclick="closeDrawer()">Закрыть</button></div>
+        <form class="form-grid" onsubmit="saveLeadForm(event, ${id})">
+          ${input('client','Клиент',l.client,true)}${input('contact','Телефон / Telegram',l.contact,true)}
+          <label>Источник<select name="sourceId" required>${state.sources.map(s => `<option value="${s.id}" ${l.sourceId===s.id?'selected':''}>${h(s.name)}</option>`).join('')}</select></label>
+          <label>Ответственный<select name="ownerId" ${canSeeAllRoles.includes(currentUser().role) ? '' : 'disabled'}>${state.employees.filter(e => e.active).map(e => `<option value="${e.id}" ${(l.ownerId || currentUser().id)===e.id?'selected':''}>${h(e.name)} · ${h(roles[e.role])}</option>`).join('')}</select></label>
+          <label>Статус<select name="status">${Object.entries(statuses).filter(([k]) => k !== 'archive').map(([k,v]) => `<option value="${k}" ${(l.status || 'new')===k?'selected':''}>${h(v)}</option>`).join('')}</select></label>
+          ${input('budget','Бюджет',l.budget)}
+          <label>Дата следующего действия<input type="date" name="nextDate" value="${h(l.nextDate || today())}" required></label>
+          ${textarea('need','Что нужно клиенту',l.need,true)}
+          ${textarea('nextAction','Следующее действие',l.nextAction,true)}
+          <div class="wide actions"><button>${direct ? 'Сохранить' : 'Отправить запрос'}</button></div>
+        </form>`);
+    }
+    function input(name, label, value = '', required = false) { return `<label>${h(label)}<input name="${name}" value="${h(value || '')}" ${required ? 'required' : ''}></label>`; }
+    function textarea(name, label, value = '', required = false) { return `<label class="wide">${h(label)}<textarea name="${name}" ${required ? 'required' : ''}>${h(value || '')}</textarea></label>`; }
+    function saveLeadForm(event, id) {
+      event.preventDefault();
+      const data = Object.fromEntries(new FormData(event.target).entries());
+      if (!id) {
+        const newLead = { id: nextId(state.leads), createdAt: stamp(), client: data.client.trim(), contact: data.contact.trim(), sourceId: Number(data.sourceId), ownerId: canSeeAllRoles.includes(currentUser().role) ? Number(data.ownerId) : currentUser().id, status: data.status, need: data.need.trim(), nextAction: data.nextAction.trim(), nextDate: data.nextDate, budget: data.budget.trim(), archivedAt: '', locked: true };
+        state.leads.push(newLead);
+        state.audit.push(event('lead', newLead.id, 'Лид создан', 'Создан с источником ' + source(newLead.sourceId).name));
+        save(); closeDrawer(); render(); toast('Лид создан');
+        return;
+      }
+      const l = state.leads.find(x => x.id === id);
+      const patch = { client: data.client.trim(), contact: data.contact.trim(), sourceId: Number(data.sourceId), ownerId: canSeeAllRoles.includes(currentUser().role) ? Number(data.ownerId) : l.ownerId, status: data.status, need: data.need.trim(), nextAction: data.nextAction.trim(), nextDate: data.nextDate, budget: data.budget.trim() };
+      if (!canEditDirect()) {
+        state.requests.push({ id: nextId(state.requests), type: 'edit_lead', leadId: id, sourceId: null, employeeId: currentUser().id, status: 'pending', createdAt: stamp(), text: 'Запрос правки лида #' + id + ': ' + data.client, patch });
+        state.audit.push(event('request', id, 'Создан запрос правки', 'Сотрудник запросил изменение карточки лида.'));
+        save(); closeDrawer(); render(); toast('Запрос отправлен руководителю');
+        return;
+      }
+      Object.assign(l, patch);
+      state.audit.push(event('lead', id, 'Лид отредактирован', 'Правка выполнена руководителем / админом.'));
+      save(); closeDrawer(); render(); toast('Лид обновлен');
+    }
+    function addLeadAction(event, id) {
+      event.preventDefault();
+      const data = Object.fromEntries(new FormData(event.target).entries());
+      state.audit.push(event('lead', id, data.action.trim(), data.details.trim()));
+      save(); closeDrawer(); openLead(id); toast('Действие записано');
+    }
+    function archiveLead(id) {
+      const l = state.leads.find(x => x.id === id);
+      if (!l) return;
+      l.status = 'archive';
+      l.archivedAt = stamp();
+      state.audit.push(event('lead', id, 'Лид отправлен в архив', 'Удаление заведенного лида запрещено, доступен только архив.'));
+      save(); closeDrawer(); render(); toast('Лид отправлен в архив');
+    }
+    function restoreLead(id) {
+      const l = state.leads.find(x => x.id === id);
+      l.status = 'new';
+      l.archivedAt = '';
+      state.audit.push(event('lead', id, 'Лид восстановлен из архива', 'Вернули в активный контур.'));
+      save(); render(); toast('Лид восстановлен');
+    }
+    function deleteFromArchive(id) {
+      if (!canDeleteArchive()) return toast('Нет права удаления из архива');
+      if (!confirm('Удалить лид из архива физически?')) return;
+      state.audit.push(event('lead', id, 'Лид удален из архива', 'Физическое удаление выполнено руководителем с правом.'));
+      state.leads = state.leads.filter(l => l.id !== id);
+      save(); render(); toast('Удалено из архива');
+    }
+
+    function openEmployeeForm(id = 0) {
+      if (!canManageEmployees()) return;
+      const e = id ? employee(id) : { role: 'manager', active: true, permissions: {}, kbClosed: [] };
+      openDrawer(`<div class="drawer-head"><h2>${id ? 'Редактировать сотрудника' : 'Нанять сотрудника'}</h2><button class="ghost" onclick="closeDrawer()">Закрыть</button></div>
+        <form class="form-grid" onsubmit="saveEmployee(event, ${id})">
+          ${input('name','Имя',e.name,true)}${input('username','Логин',e.username,true)}
+          <label>Роль<select name="role">${Object.entries(roles).map(([k,v]) => `<option value="${k}" ${e.role===k?'selected':''}>${h(v)}</option>`).join('')}</select></label>
+          <label><span><input style="width:auto;min-height:auto" type="checkbox" name="money" ${e.permissions.money?'checked':''}> доступ к деньгам</span></label>
+          <label><span><input style="width:auto;min-height:auto" type="checkbox" name="export" ${e.permissions.export?'checked':''}> экспорт</span></label>
+          <label><span><input style="width:auto;min-height:auto" type="checkbox" name="deleteArchive" ${e.permissions.deleteArchive?'checked':''}> удаление из архива</span></label>
+          <label class="wide">Закрыть разделы базы знаний<select name="kbClosed" multiple size="4"><option value="sales" ${e.kbClosed.includes('sales')?'selected':''}>sales</option><option value="company" ${e.kbClosed.includes('company')?'selected':''}>company</option><option value="finance" ${e.kbClosed.includes('finance')?'selected':''}>finance</option><option value="management" ${e.kbClosed.includes('management')?'selected':''}>management</option></select></label>
+          <div class="wide actions"><button>Сохранить</button></div>
+        </form>`);
+    }
+    function saveEmployee(event, id) {
+      event.preventDefault();
+      const f = event.target;
+      const data = Object.fromEntries(new FormData(f).entries());
+      const kbClosed = Array.from(f.kbClosed.selectedOptions).map(o => o.value);
+      const payload = { name: data.name.trim(), username: data.username.trim(), role: data.role, permissions: { money: Boolean(data.money), export: Boolean(data.export), deleteArchive: Boolean(data.deleteArchive) }, kbClosed };
+      if (id) {
+        Object.assign(employee(id), payload);
+        state.audit.push(eventLog('employee', id, 'Изменены права сотрудника', payload.name));
+      } else {
+        const newEmp = { id: nextId(state.employees), ...payload, active: true, hiredAt: today() };
+        state.employees.push(newEmp);
+        state.audit.push(eventLog('employee', newEmp.id, 'Сотрудник нанят', newEmp.name));
+      }
+      save(); closeDrawer(); render(); toast('Сотрудник сохранен');
+    }
+    function eventLog(entity, entityId, action, details) { return { id: Date.now() + Math.floor(Math.random()*10000), entity, entityId, actorId: currentUser().id, createdAt: stamp(), action, details }; }
+    function fireEmployee(id) {
+      employee(id).active = false;
+      state.audit.push(eventLog('employee', id, 'Сотрудник уволен', employee(id).name));
+      save(); render(); toast('Сотрудник уволен, доступ закрыт');
+    }
+    function hireBack(id) {
+      employee(id).active = true;
+      state.audit.push(eventLog('employee', id, 'Сотрудник восстановлен', employee(id).name));
+      save(); render(); toast('Сотрудник восстановлен');
+    }
+    function openKnowledgeForm() { toast('В демо материалы уже заведены. В боевой версии здесь будет редактор БЗ.'); }
+    function openRequestForm() { toast('Открой лид сотрудником и нажми "Запросить правку" — запрос появится здесь.'); }
+    function approveRequest(id) {
+      const r = state.requests.find(x => x.id === id);
+      if (!r || r.status !== 'pending') return;
+      if (r.type === 'edit_lead') Object.assign(state.leads.find(l => l.id === r.leadId), r.patch);
+      if (r.type === 'edit_source') Object.assign(state.sources.find(s => s.id === r.sourceId), r.patch);
+      r.status = 'approved';
+      state.audit.push(eventLog('request', id, 'Запрос одобрен', r.text));
+      save(); render(); toast('Запрос одобрен');
+    }
+    function declineRequest(id) {
+      const r = state.requests.find(x => x.id === id);
+      r.status = 'declined';
+      state.audit.push(eventLog('request', id, 'Запрос отклонен', r.text));
+      save(); render(); toast('Запрос отклонен');
+    }
+    function openDrawer(html) {
+      const drawer = document.getElementById('drawer');
+      drawer.innerHTML = `<div class="drawer-card">${html}</div>`;
+      drawer.classList.add('open');
+    }
+    function closeDrawer() { document.getElementById('drawer').classList.remove('open'); }
+    function toast(text) {
+      const box = document.getElementById('toast');
+      box.textContent = text;
+      box.classList.add('show');
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => box.classList.remove('show'), 2600);
+    }
+    function resetDemo() {
+      if (!confirm('Сбросить локальные демо-данные CRM v2?')) return;
+      localStorage.removeItem(STORE);
+      state = loadState();
+      render();
+      toast('Демо сброшено');
+    }
+
+    render();
+  </script>
+</body>
+</html>
