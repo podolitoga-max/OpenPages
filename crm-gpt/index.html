@@ -1,0 +1,852 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRM GPT | Podolsky</title>
+  <meta name="description" content="Браузерная CRM GPT для строительных лидов, источников, касаний и воронки продаж.">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Source+Serif+4:opsz,wght@8..60,700&display=swap&subset=cyrillic');
+
+    :root {
+      --bg: #f3f1ec;
+      --paper: #fffdfa;
+      --ink: #191714;
+      --muted: #746f67;
+      --line: #ded8ce;
+      --line-strong: #c8beb0;
+      --black: #191714;
+      --olive: #5e6b3d;
+      --blue: #265d73;
+      --red: #a13d32;
+      --gold: #b88743;
+      --green: #23704e;
+      --shadow: 0 18px 50px rgba(25, 23, 20, .10);
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(25,23,20,.035) 1px, transparent 1px) 0 0 / 36px 36px,
+        linear-gradient(rgba(25,23,20,.03) 1px, transparent 1px) 0 0 / 36px 36px,
+        var(--bg);
+      font-family: Manrope, system-ui, -apple-system, Segoe UI, sans-serif;
+      letter-spacing: 0;
+    }
+
+    button, input, select, textarea { font: inherit; letter-spacing: 0; }
+    button {
+      min-height: 38px;
+      border: 1px solid var(--black);
+      border-radius: var(--radius);
+      background: var(--black);
+      color: #fff;
+      padding: 9px 12px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+    button:hover { transform: translateY(-1px); }
+    button.secondary { background: var(--paper); color: var(--ink); border-color: var(--line-strong); }
+    button.ghost { background: transparent; color: var(--ink); border-color: transparent; }
+    button.danger { background: var(--red); border-color: var(--red); }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--ink);
+      padding: 9px 10px;
+      min-height: 38px;
+    }
+    textarea { min-height: 92px; resize: vertical; }
+    label { display: grid; gap: 6px; font-size: 12px; font-weight: 800; color: #3b352e; }
+    a { color: var(--blue); text-decoration: none; font-weight: 800; }
+    a:hover { text-decoration: underline; }
+
+    .app-shell { min-height: 100vh; display: grid; grid-template-columns: 248px 1fr; }
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 18px;
+      background: #171613;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .brand { border-bottom: 1px solid rgba(255,255,255,.18); padding-bottom: 16px; }
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      background: #f2d9a0;
+      color: #171613;
+      font-family: "Source Serif 4", serif;
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .brand h1 {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 25px;
+      line-height: 1;
+      margin: 0 0 6px;
+    }
+    .brand p { margin: 0; color: #c8c1b8; font-size: 12px; line-height: 1.45; }
+    .nav { display: grid; gap: 7px; }
+    .nav button {
+      justify-content: flex-start;
+      display: flex;
+      gap: 9px;
+      width: 100%;
+      background: transparent;
+      color: #ece7dd;
+      border: 1px solid transparent;
+      text-align: left;
+    }
+    .nav button.active, .nav button:hover {
+      background: rgba(255,255,255,.10);
+      border-color: rgba(255,255,255,.18);
+      transform: none;
+    }
+    .sidebar-foot {
+      margin-top: auto;
+      color: #bdb5a9;
+      font-size: 12px;
+      line-height: 1.45;
+      border-top: 1px solid rgba(255,255,255,.16);
+      padding-top: 14px;
+    }
+
+    .content { padding: 24px; min-width: 0; }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .eyebrow::before { content: ""; width: 18px; height: 2px; background: var(--gold); }
+    .page-title {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 42px;
+      line-height: .98;
+      margin: 5px 0 0;
+      max-width: 780px;
+    }
+    .user-box {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      min-width: 230px;
+      box-shadow: 0 1px 0 rgba(25,23,20,.05);
+    }
+    .user-box b { display: block; }
+    .muted { color: var(--muted); font-size: 12px; }
+
+    .grid { display: grid; gap: 14px; }
+    .cards { grid-template-columns: repeat(5, minmax(145px, 1fr)); }
+    .card, .panel {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 1px 0 rgba(25,23,20,.04);
+    }
+    .card { padding: 14px; min-height: 102px; }
+    .card .num { font-size: 30px; font-weight: 800; line-height: 1; margin-bottom: 8px; }
+    .card .label { color: var(--muted); font-size: 12px; font-weight: 800; text-transform: uppercase; }
+    .panel { padding: 16px; }
+    .panel h2 { margin: 0 0 12px; font-size: 18px; }
+    .toolbar {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr auto auto;
+      gap: 8px;
+      align-items: end;
+      margin-bottom: 12px;
+    }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+    .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+    table { width: 100%; min-width: 980px; border-collapse: collapse; }
+    th, td { padding: 10px 9px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; font-size: 13px; }
+    th { background: #f7f3eb; color: #514a40; font-size: 11px; text-transform: uppercase; white-space: nowrap; }
+    tr:hover td { background: #fffaf1; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: #eef4ed;
+      color: var(--olive);
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .badge.red { background: #f9e8e5; color: var(--red); }
+    .badge.blue { background: #e9f1f4; color: var(--blue); }
+    .badge.gold { background: #f8efdf; color: #8a5c1c; }
+    .contact { word-break: break-word; white-space: normal; }
+
+    .split { display: grid; grid-template-columns: 1.15fr .85fr; gap: 14px; align-items: start; }
+    .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 11px; }
+    .wide { grid-column: 1 / -1; }
+    .login-screen {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background:
+        linear-gradient(135deg, rgba(184,135,67,.16), transparent 45%),
+        linear-gradient(315deg, rgba(38,93,115,.14), transparent 48%),
+        var(--bg);
+    }
+    .login-card {
+      width: min(440px, 100%);
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+    .login-card h1 {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 36px;
+      line-height: 1;
+      margin: 0 0 10px;
+    }
+    .login-card form { display: grid; gap: 12px; margin-top: 18px; }
+    .alert { background: #f9e8e5; border: 1px solid #e6b6ad; color: #7a241b; border-radius: var(--radius); padding: 10px 12px; margin-top: 10px; font-weight: 700; }
+    .empty { padding: 26px; text-align: center; color: var(--muted); }
+    .drawer {
+      position: fixed;
+      inset: 0;
+      display: none;
+      background: rgba(25,23,20,.42);
+      z-index: 20;
+      padding: 20px;
+      overflow: auto;
+    }
+    .drawer.open { display: grid; place-items: start center; }
+    .drawer-card {
+      width: min(1050px, 100%);
+      background: var(--paper);
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+    .drawer-head { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
+    .drawer-head h2 { margin: 0; font-family: "Source Serif 4", Georgia, serif; font-size: 30px; }
+    .touch-list { display: grid; gap: 8px; }
+    .touch { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; background: #fff; }
+    .touch b { display: block; margin-bottom: 4px; }
+    .hide { display: none !important; }
+
+    @media (max-width: 1100px) {
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar { position: relative; height: auto; }
+      .nav { grid-template-columns: repeat(3, minmax(140px, 1fr)); }
+      .cards { grid-template-columns: repeat(2, 1fr); }
+      .split, .toolbar, .form-grid { grid-template-columns: 1fr; }
+      .topbar { flex-direction: column; }
+      .page-title { font-size: 34px; }
+      .user-box { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    const STORAGE_KEY = 'podolsky-crm-gpt-v1';
+    const SESSION_KEY = 'podolsky-crm-gpt-session';
+
+    const statuses = {
+      new: 'Новый лид',
+      contacted: 'Контакт получен',
+      qualified: 'Отквалифицирован',
+      warmup: 'В прогреве',
+      measure_scheduled: 'Записан на замер',
+      measure_done: 'Замер проведен',
+      estimate_in_progress: 'Передан на смету',
+      estimate_sent: 'Смета отправлена',
+      contract_negotiation: 'Дожим / обсуждение',
+      contract_signed: 'Договор подписан',
+      prepayment_received: 'Предоплата получена',
+      in_work: 'Взят в работу',
+      rejected: 'Отказ / нецелевой'
+    };
+
+    const statusRank = {
+      rejected: -1, new: 0, contacted: 1, qualified: 2, warmup: 3, measure_scheduled: 4,
+      measure_done: 5, estimate_in_progress: 6, estimate_sent: 7, contract_negotiation: 8,
+      contract_signed: 9, prepayment_received: 10, in_work: 11
+    };
+
+    const seedSources = [
+      ['Хорошево-Мневники','районный чат','Калюжный Данила','уточнить','Клиентский районный источник.'],
+      ['Измайлово / Гольяново','районный чат','Калюжный Данила','уточнить','Клиентский районный источник.'],
+      ['СтартПродаж','недвижимость / новостройки','Калюжный Данила','уточнить','Проверить правила размещения.'],
+      ['АРХИТАЙМ','дизайнеры / архитекторы','Калюжный Данила','уточнить','Партнерский источник: дизайнеры/архитекторы.'],
+      ['Строительство Москва МО','строительство / ремонт','Калюжный Данила','уточнить','Профильный источник, проверить долю подрядчиков.'],
+      ['Город Московский чат','районный чат','Гасымова Фахрия','уточнить','Клиентский районный источник.'],
+      ['ЖК Саларьево парк','ЖК / новостройка','Гасымова Фахрия','уточнить','Потенциальные заказчики после выдачи ключей.'],
+      ['ЖК Люблинский парк','ЖК / новостройка','Гасымова Фахрия','уточнить','Проверить размещение через администратора.'],
+      ['ЖК Прокшино','ЖК / новостройка','Гасымова Фахрия / Леонова Ника','через админа','Повторяется в нескольких тестовых. Приоритетный ЖК.'],
+      ['ЖК Символ','ЖК / новостройка','Гасымова Фахрия / Леонова Ника','через админа','Приоритетный ЖК.'],
+      ['Дизайнеры Интерьера Москвы','дизайнеры / архитекторы','Бутба Инал','уточнить','Партнерский канал под дизайнеров.'],
+      ['ДИЗАЙНЕРЫ & АРХИТЕКТОРЫ','дизайнеры / архитекторы','Бутба Инал','уточнить','Партнерский канал.'],
+      ['ЖК Домашний - ремонт','ЖК / новостройка','Бутба Инал','уточнить','Проверить аудиторию.'],
+      ['Дизайн и Ремонт Москва','ремонт / дизайн','Бутба Инал','уточнить','Смешанный источник, проверить качество лидов.'],
+      ['Недвижимость PRO Москва','риелторы / недвижимость','Бутба Инал','уточнить','Может быть партнерским источником через риелторов.'],
+      ['ЖК ЗИЛАРТ','ЖК / новостройка','Леонова Ника','через админа','Клиентский источник.'],
+      ['ЖК Остров','ЖК / новостройка','Леонова Ника','через админа','Клиентский источник.'],
+      ['ЖК Мичуринский парк','ЖК / новостройка','Леонова Ника','через админа','Клиентский источник.'],
+      ['Чат. Стройка и ремонт Москва','строительство / ремонт','Внуковская Виктория','уточнить','Профильный чат, проверить клиентов.'],
+      ['Ремонт в ЖК | Чат взаимопомощи Мск и МО','ЖК / ремонт','Внуковская Виктория','уточнить','Проверить правила.'],
+      ['СТРОИТЕЛИ Москвы 2026','строительство / подрядчики','Внуковская Виктория','уточнить','Риск: много мастеров/подрядчиков.'],
+      ['Стройка Отделка Москва Заказчики Мастера','строительство / ремонт','Внуковская Виктория','уточнить','Смешанный источник.'],
+      ['Строители Мастера Москва','строительство / подрядчики','Внуковская Виктория','уточнить','Риск: подрядная аудитория.']
+    ];
+
+    const initialState = () => ({
+      users: [
+        { id: 1, username: 'admin', password: 'admin123', fullName: 'Главный админ', role: 'admin', active: true },
+        { id: 2, username: 'sales1', password: 'sales123', fullName: 'Продажник 1', role: 'sales', active: true },
+        { id: 3, username: 'sales2', password: 'sales123', fullName: 'Продажник 2', role: 'sales', active: true }
+      ],
+      sources: seedSources.map((s, index) => ({
+        id: index + 1,
+        name: s[0],
+        type: s[1],
+        link: '',
+        foundBy: s[2],
+        canPost: s[3],
+        status: 'не проверен',
+        offerText: 'Добрый день. Выполняем ремонт квартир, апартаментов и коммерческих помещений в Москве и МО: замер, смета, договор, гарантия.',
+        comment: s[4],
+        createdAt: today()
+      })),
+      leads: [
+        sampleLead(1, 'Дмитрий / Юго-Западный', '+7 917 519-54-29', 9, 2, 'qualified', 'квартира', 'Юго-Западный', '60', 'Капитальный ремонт, дизайн-проект есть', 'замер / дожим', today()),
+        sampleLead(2, 'Паскуаль', '', 15, 2, 'warmup', 'квартира', 'Москва', '', 'Уточнить готовность к следующему шагу', 'созвон / прогрев', today()),
+        sampleLead(3, 'Рауф', '', 20, 3, 'contacted', 'объект', 'Москва / МО', '', 'Проверить актуальность объекта', 'перезвон', today())
+      ],
+      touches: [
+        { id: 1, leadId: 1, userId: 2, touchAt: now(), type: 'звонок', result: 'Ключи получены, ремонт актуален', nextAction: 'Отправить информацию о компании', nextActionDate: today(), comment: 'Демо-запись из логики Deus-лидов.' }
+      ]
+    });
+
+    function sampleLead(id, clientName, phone, sourceId, assignedUserId, status, objectType, district, area, needText, nextAction, nextActionDate) {
+      return {
+        id, createdAt: now(), clientName, phone, telegram: '', whatsapp: '', sourceId,
+        assignedUserId, status, objectType, district, address: '', areaM2: area,
+        needText, budget: '', timeline: '', nextAction, nextActionDate, comment: ''
+      };
+    }
+
+    let state = loadState();
+    let session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+    let currentView = 'dashboard';
+    let filters = { q: '', status: '', sourceId: '', assignedUserId: '', overdue: false };
+    let sort = { field: 'createdAt', dir: 'desc' };
+
+    function loadState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+      const seeded = initialState();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(seeded));
+      return seeded;
+    }
+    function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    function today() { return new Date().toISOString().slice(0, 10); }
+    function now() {
+      const d = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+    function nextId(list) { return list.length ? Math.max(...list.map(x => x.id)) + 1 : 1; }
+    function h(value) {
+      return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+    }
+    function user() { return session ? state.users.find(u => u.id === session.userId && u.active) : null; }
+    function sourceById(id) { return state.sources.find(s => s.id === Number(id)); }
+    function userById(id) { return state.users.find(u => u.id === Number(id)); }
+    function statusLabel(s) { return statuses[s] || s; }
+
+    function render() {
+      const u = user();
+      if (!u) return renderLogin();
+      document.getElementById('app').innerHTML = `
+        <div class="app-shell">
+          <aside class="sidebar">
+            <div class="brand">
+              <div class="brand-mark">P</div>
+              <h1>CRM GPT</h1>
+              <p>Лиды, источники, касания и воронка ремонта в одной рабочей панели.</p>
+            </div>
+            <div class="nav">
+              ${navButton('dashboard', 'Сводка')}
+              ${navButton('leads', 'Лиды')}
+              ${navButton('sources', 'Источники')}
+              ${u.role === 'admin' ? navButton('users', 'Пользователи') : ''}
+              ${navButton('export', 'Экспорт')}
+            </div>
+            <div class="sidebar-foot">
+              <b>Локальная версия</b><br>
+              Данные хранятся в браузере. Для боевой эксплуатации нужен сервер, авторизация и резервные копии.
+            </div>
+          </aside>
+          <section class="content">
+            <div class="topbar">
+              <div>
+                <div class="eyebrow">${viewEyebrow()}</div>
+                <div class="page-title">${viewTitle()}</div>
+              </div>
+              <div class="user-box">
+                <b>${h(u.fullName)}</b>
+                <span class="muted">${h(u.role)} · ${h(u.username)}</span>
+                <div class="actions" style="margin-top:8px">
+                  <button class="secondary" onclick="logout()">Выйти</button>
+                </div>
+              </div>
+            </div>
+            ${renderView()}
+          </section>
+        </div>
+        <div id="drawer" class="drawer"></div>
+      `;
+    }
+
+    function navButton(view, label) {
+      return `<button class="${currentView === view ? 'active' : ''}" onclick="go('${view}')">${label}</button>`;
+    }
+    function go(view) { currentView = view; render(); }
+    function viewEyebrow() {
+      return ({dashboard:'оперативный контур', leads:'воронка продаж', sources:'каналы трафика', users:'доступы', export:'данные'})[currentView] || 'CRM';
+    }
+    function viewTitle() {
+      return ({dashboard:'Сводка по продажам и источникам', leads:'Лиды и следующие действия', sources:'Источники лидов', users:'Пользователи и роли', export:'Экспорт и обслуживание'})[currentView] || 'CRM';
+    }
+
+    function renderLogin() {
+      document.getElementById('app').innerHTML = `
+        <div class="login-screen">
+          <div class="login-card">
+            <div class="brand-mark">P</div>
+            <h1>CRM GPT</h1>
+            <p class="muted">Браузерная версия CRM для строительных лидов. Тестовые учетки из архива сохранены.</p>
+            <div id="login-error"></div>
+            <form onsubmit="login(event)">
+              <label>Логин<input name="username" required autofocus autocomplete="username" value="admin"></label>
+              <label>Пароль<input name="password" required autocomplete="current-password" type="password" value="admin123"></label>
+              <button>Войти</button>
+            </form>
+            <p class="muted" style="margin-bottom:0">Тест: admin/admin123, sales1/sales123, sales2/sales123</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function login(event) {
+      event.preventDefault();
+      const form = event.target;
+      const found = state.users.find(u => u.username === form.username.value.trim() && u.password === form.password.value && u.active);
+      if (!found) {
+        document.getElementById('login-error').innerHTML = '<div class="alert">Неверный логин или пароль</div>';
+        return;
+      }
+      session = { userId: found.id };
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      render();
+    }
+    function logout() { localStorage.removeItem(SESSION_KEY); session = null; render(); }
+
+    function renderView() {
+      if (currentView === 'dashboard') return renderDashboard();
+      if (currentView === 'leads') return renderLeads();
+      if (currentView === 'sources') return renderSources();
+      if (currentView === 'users') return renderUsers();
+      if (currentView === 'export') return renderExport();
+      return '';
+    }
+
+    function renderDashboard() {
+      const leadCount = state.leads.length;
+      const overdue = state.leads.filter(l => l.nextActionDate && l.nextActionDate < today() && !['in_work','rejected'].includes(l.status)).length;
+      const measures = state.leads.filter(l => l.status === 'measure_scheduled').length;
+      const inWork = state.leads.filter(l => l.status === 'in_work').length;
+      const hot = state.leads.filter(l => statusRank[l.status] >= statusRank.qualified && l.status !== 'rejected').length;
+      return `
+        <div class="grid cards">
+          ${statCard(leadCount, 'Всего лидов')}
+          ${statCard(hot, 'Живой контур')}
+          ${statCard(overdue, 'Просрочено')}
+          ${statCard(measures, 'Замеры')}
+          ${statCard(inWork, 'В работе')}
+        </div>
+        <div class="split" style="margin-top:14px">
+          <section class="panel">
+            <div class="actions" style="justify-content:space-between;margin-bottom:12px">
+              <h2>Ближайшие действия</h2>
+              <button onclick="openLeadForm()">+ Лид</button>
+            </div>
+            ${renderNextActions()}
+          </section>
+          <section class="panel">
+            <h2>Эффективность источников</h2>
+            ${renderSourcesMini()}
+          </section>
+        </div>
+      `;
+    }
+    function statCard(num, label) { return `<div class="card"><div class="num">${h(num)}</div><div class="label">${h(label)}</div></div>`; }
+
+    function renderNextActions() {
+      const rows = [...state.leads]
+        .filter(l => l.nextAction || l.nextActionDate)
+        .sort((a,b) => String(a.nextActionDate || '9999').localeCompare(String(b.nextActionDate || '9999')))
+        .slice(0, 8);
+      if (!rows.length) return '<div class="empty">Следующие действия не назначены.</div>';
+      return `<div class="table-wrap"><table><thead><tr><th>Дата</th><th>Клиент</th><th>Действие</th><th>Статус</th><th></th></tr></thead><tbody>
+        ${rows.map(l => `<tr><td>${h(l.nextActionDate)}</td><td><b>${h(l.clientName)}</b><div class="muted">${h(sourceById(l.sourceId)?.name || '')}</div></td><td>${h(l.nextAction)}</td><td>${badge(l.status)}</td><td><button class="secondary" onclick="openLead(${l.id})">Открыть</button></td></tr>`).join('')}
+      </tbody></table></div>`;
+    }
+
+    function renderSourcesMini() {
+      const rows = sourceStats().slice(0, 8);
+      return `<div class="table-wrap"><table style="min-width:620px"><thead><tr><th>Источник</th><th>Лиды</th><th>Замер+</th><th>В работу</th></tr></thead><tbody>
+        ${rows.map(s => `<tr><td><b>${h(s.name)}</b><div class="muted">${h(s.type)}</div></td><td>${s.total}</td><td>${s.measure}</td><td>${s.work}</td></tr>`).join('')}
+      </tbody></table></div>`;
+    }
+
+    function renderLeads() {
+      const rows = filteredLeads();
+      return `
+        <div class="toolbar">
+          <label>Поиск<input value="${h(filters.q)}" oninput="filters.q=this.value;render()" placeholder="имя, телефон, район, задача"></label>
+          <label>Статус<select onchange="filters.status=this.value;render()"><option value="">Все</option>${Object.entries(statuses).map(([k,v]) => `<option value="${k}" ${filters.status===k?'selected':''}>${h(v)}</option>`).join('')}</select></label>
+          <label>Источник<select onchange="filters.sourceId=this.value;render()"><option value="">Все</option>${state.sources.map(s => `<option value="${s.id}" ${String(filters.sourceId)===String(s.id)?'selected':''}>${h(s.name)}</option>`).join('')}</select></label>
+          <label>Ответственный<select onchange="filters.assignedUserId=this.value;render()"><option value="">Все</option>${state.users.map(u => `<option value="${u.id}" ${String(filters.assignedUserId)===String(u.id)?'selected':''}>${h(u.fullName)}</option>`).join('')}</select></label>
+          <label style="display:flex;align-items:end;height:100%"><span><input style="width:auto;min-height:auto" type="checkbox" ${filters.overdue?'checked':''} onchange="filters.overdue=this.checked;render()"> просроченные</span></label>
+          <button onclick="openLeadForm()">+ Лид</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              ${th('createdAt','Дата')}${th('clientName','Клиент')}<th>Контакт</th>${th('source','Источник')}${th('status','Статус')}<th>Ответственный</th>${th('nextActionDate','Следующее')}<th></th>
+            </tr></thead>
+            <tbody>${rows.map(leadRow).join('') || `<tr><td colspan="8"><div class="empty">Лиды не найдены.</div></td></tr>`}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function filteredLeads() {
+      const q = filters.q.toLowerCase().trim();
+      return [...state.leads].filter(l => {
+        const blob = [l.clientName,l.phone,l.telegram,l.whatsapp,l.district,l.needText,l.nextAction,sourceById(l.sourceId)?.name].join(' ').toLowerCase();
+        if (q && !blob.includes(q)) return false;
+        if (filters.status && l.status !== filters.status) return false;
+        if (filters.sourceId && Number(l.sourceId) !== Number(filters.sourceId)) return false;
+        if (filters.assignedUserId && Number(l.assignedUserId) !== Number(filters.assignedUserId)) return false;
+        if (filters.overdue && !(l.nextActionDate && l.nextActionDate < today() && !['in_work','rejected'].includes(l.status))) return false;
+        return true;
+      }).sort((a,b) => {
+        const av = sort.field === 'source' ? sourceById(a.sourceId)?.name : a[sort.field];
+        const bv = sort.field === 'source' ? sourceById(b.sourceId)?.name : b[sort.field];
+        return String(av || '').localeCompare(String(bv || ''), 'ru') * (sort.dir === 'asc' ? 1 : -1);
+      });
+    }
+    function th(field, label) {
+      return `<th><a href="#" onclick="setSort('${field}');return false">${h(label)}${sort.field===field ? (sort.dir==='asc'?' ↑':' ↓') : ''}</a></th>`;
+    }
+    function setSort(field) {
+      sort.dir = sort.field === field && sort.dir === 'asc' ? 'desc' : 'asc';
+      sort.field = field;
+      render();
+    }
+    function leadRow(l) {
+      const contact = [l.phone, l.telegram ? 'TG: '+l.telegram : '', l.whatsapp ? 'WA: '+l.whatsapp : ''].filter(Boolean).join('<br>') || '<span class="muted">нет</span>';
+      return `<tr>
+        <td>${h(l.createdAt)}</td>
+        <td><b>${h(l.clientName)}</b><div class="muted">${h(l.objectType)} ${h(l.district)}</div></td>
+        <td class="contact">${contact}</td>
+        <td>${h(sourceById(l.sourceId)?.name || '')}</td>
+        <td>${badge(l.status)}</td>
+        <td>${h(userById(l.assignedUserId)?.fullName || '')}</td>
+        <td>${h(l.nextActionDate)}<div class="muted">${h(l.nextAction)}</div></td>
+        <td><button class="secondary" onclick="openLead(${l.id})">Открыть</button></td>
+      </tr>`;
+    }
+    function badge(status) {
+      const cls = status === 'rejected' ? 'red' : statusRank[status] >= 8 ? 'gold' : statusRank[status] >= 4 ? 'blue' : '';
+      return `<span class="badge ${cls}">${h(statusLabel(status))}</span>`;
+    }
+
+    function renderSources() {
+      const rows = sourceStats();
+      return `
+        <div class="actions" style="justify-content:space-between;margin-bottom:12px">
+          <div class="muted">Источник обязателен для каждого лида. Статистика считается автоматически по статусам.</div>
+          <button onclick="openSourceForm()">+ Источник</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Источник</th><th>Тип</th><th>Кто нашел</th><th>Можно</th><th>Статус</th><th>Пришло</th><th>Отквал.</th><th>Прогрев</th><th>Замер</th><th>Договор</th><th>В работу</th><th></th></tr></thead>
+            <tbody>${rows.map(s => `<tr><td><b>${h(s.name)}</b>${s.link?`<div><a href="${h(s.link)}" target="_blank">ссылка</a></div>`:''}<div class="muted">${h(s.comment)}</div></td><td>${h(s.type)}</td><td>${h(s.foundBy)}</td><td>${h(s.canPost)}</td><td>${h(s.status)}</td><td>${s.total}</td><td>${s.qualified}</td><td>${s.warmup}</td><td>${s.measure}</td><td>${s.contract}</td><td>${s.work}</td><td><button class="secondary" onclick="openSourceForm(${s.id})">Ред.</button></td></tr>`).join('')}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function sourceStats() {
+      return state.sources.map(s => {
+        const leads = state.leads.filter(l => l.sourceId === s.id);
+        return {
+          ...s,
+          total: leads.length,
+          qualified: leads.filter(l => statusRank[l.status] >= 2).length,
+          warmup: leads.filter(l => statusRank[l.status] >= 3).length,
+          measure: leads.filter(l => statusRank[l.status] >= 4).length,
+          contract: leads.filter(l => statusRank[l.status] >= 9).length,
+          work: leads.filter(l => l.status === 'in_work').length
+        };
+      }).sort((a,b) => b.total - a.total || a.name.localeCompare(b.name, 'ru'));
+    }
+
+    function renderUsers() {
+      if (user().role !== 'admin') return '<section class="panel">Доступ только для admin.</section>';
+      return `
+        <section class="panel">
+          <div class="actions" style="justify-content:space-between;margin-bottom:12px"><h2>Пользователи</h2><button onclick="openUserForm()">+ Пользователь</button></div>
+          <div class="table-wrap"><table style="min-width:650px"><thead><tr><th>ID</th><th>Логин</th><th>Имя</th><th>Роль</th><th>Активен</th></tr></thead><tbody>
+            ${state.users.map(u => `<tr><td>${u.id}</td><td>${h(u.username)}</td><td>${h(u.fullName)}</td><td>${h(u.role)}</td><td>${u.active?'да':'нет'}</td></tr>`).join('')}
+          </tbody></table></div>
+        </section>
+      `;
+    }
+
+    function renderExport() {
+      return `
+        <section class="panel">
+          <h2>Экспорт / импорт</h2>
+          <p class="muted">Можно скачать текущее состояние CRM как JSON или сбросить демо-данные. Пароли здесь тестовые, не использовать как боевую защиту.</p>
+          <div class="actions">
+            <button onclick="downloadJson()">Скачать JSON</button>
+            <button class="secondary" onclick="importPrompt()">Импорт JSON</button>
+            <button class="danger" onclick="resetData()">Сбросить демо</button>
+          </div>
+        </section>
+      `;
+    }
+    function downloadJson() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'crm-gpt-export.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+    function importPrompt() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'application/json';
+      input.onchange = async () => {
+        const text = await input.files[0].text();
+        state = JSON.parse(text);
+        saveState();
+        render();
+      };
+      input.click();
+    }
+    function resetData() {
+      if (!confirm('Сбросить локальные данные CRM?')) return;
+      state = initialState();
+      saveState();
+      render();
+    }
+
+    function openLead(id) {
+      const l = state.leads.find(x => x.id === id);
+      const touches = state.touches.filter(t => t.leadId === id).sort((a,b) => b.touchAt.localeCompare(a.touchAt));
+      openDrawer(`
+        <div class="drawer-head">
+          <div><h2>${h(l.clientName)}</h2><div class="muted">${h(sourceById(l.sourceId)?.name || '')} · ${h(userById(l.assignedUserId)?.fullName || 'без ответственного')}</div></div>
+          <div class="actions"><button class="secondary" onclick="openLeadForm(${id})">Редактировать</button><button class="ghost" onclick="closeDrawer()">Закрыть</button></div>
+        </div>
+        <div class="split">
+          <section class="panel">
+            <h2>Карточка</h2>
+            <dl style="display:grid;grid-template-columns:170px 1fr;gap:8px 12px">
+              ${dl('Статус', badge(l.status))}${dl('Телефон', h(l.phone))}${dl('Telegram', h(l.telegram))}${dl('WhatsApp', h(l.whatsapp))}
+              ${dl('Объект', h(l.objectType))}${dl('Район', h(l.district))}${dl('Адрес', h(l.address))}${dl('Площадь', h(l.areaM2))}
+              ${dl('Бюджет', h(l.budget))}${dl('Сроки', h(l.timeline))}${dl('Что нужно', h(l.needText))}${dl('Следующее действие', `${h(l.nextAction)} ${h(l.nextActionDate)}`)}${dl('Комментарий', h(l.comment))}
+            </dl>
+          </section>
+          <section class="panel">
+            <h2>Добавить касание</h2>
+            <form class="grid" onsubmit="saveTouch(event, ${id})">
+              <label>Тип<select name="type"><option>звонок</option><option>Telegram</option><option>WhatsApp</option><option>сообщение</option><option>встреча</option></select></label>
+              <label>Результат<input name="result"></label>
+              <label>Следующее действие<input name="nextAction"></label>
+              <label>Дата следующего действия<input name="nextActionDate" type="date"></label>
+              <label>Комментарий<textarea name="comment"></textarea></label>
+              <button>Сохранить касание</button>
+            </form>
+          </section>
+        </div>
+        <section class="panel" style="margin-top:14px">
+          <h2>История касаний</h2>
+          <div class="touch-list">${touches.map(t => `<div class="touch"><b>${h(t.touchAt)} · ${h(t.type)} · ${h(userById(t.userId)?.fullName || '')}</b><div>${h(t.result)}</div><div class="muted">${h(t.nextAction)} ${h(t.nextActionDate)}</div><div>${h(t.comment)}</div></div>`).join('') || '<div class="empty">Касаний нет.</div>'}</div>
+        </section>
+      `);
+    }
+    function dl(k, v) { return `<dt style="font-weight:800;color:#514a40">${h(k)}</dt><dd style="margin:0;word-break:break-word">${v || '<span class="muted">—</span>'}</dd>`; }
+
+    function openLeadForm(id) {
+      const l = id ? state.leads.find(x => x.id === id) : {};
+      openDrawer(`
+        <div class="drawer-head"><h2>${id ? 'Редактировать лид' : 'Новый лид'}</h2><button class="ghost" onclick="closeDrawer()">Закрыть</button></div>
+        <form class="form-grid" onsubmit="saveLead(event, ${id || 0})">
+          ${input('clientName','Имя клиента',l.clientName,true)}${input('phone','Телефон',l.phone)}${input('telegram','Telegram',l.telegram)}${input('whatsapp','WhatsApp',l.whatsapp)}
+          <label>Источник<select name="sourceId" required>${state.sources.map(s => `<option value="${s.id}" ${l.sourceId===s.id?'selected':''}>${h(s.name)}</option>`).join('')}</select></label>
+          <label>Ответственный<select name="assignedUserId"><option value="">—</option>${state.users.filter(u=>u.active).map(u => `<option value="${u.id}" ${l.assignedUserId===u.id?'selected':''}>${h(u.fullName)} / ${h(u.role)}</option>`).join('')}</select></label>
+          <label>Статус<select name="status">${Object.entries(statuses).map(([k,v]) => `<option value="${k}" ${(l.status || 'new')===k?'selected':''}>${h(v)}</option>`).join('')}</select></label>
+          ${input('objectType','Тип объекта',l.objectType)}${input('district','Район',l.district)}${input('address','Адрес',l.address)}${input('areaM2','Площадь',l.areaM2)}${input('budget','Бюджет',l.budget)}${input('timeline','Сроки',l.timeline)}
+          <label>Дата следующего действия<input type="date" name="nextActionDate" value="${h(l.nextActionDate || '')}"></label>
+          ${textarea('needText','Что нужно сделать',l.needText)}${textarea('nextAction','Следующее действие',l.nextAction)}${textarea('comment','Комментарий',l.comment)}
+          <div class="wide actions"><button>Сохранить</button>${id ? `<button type="button" class="danger" onclick="deleteLead(${id})">Удалить</button>` : ''}</div>
+        </form>
+      `);
+    }
+    function input(name, label, value='', required=false) { return `<label>${h(label)}<input name="${name}" ${required?'required':''} value="${h(value || '')}"></label>`; }
+    function textarea(name, label, value='') { return `<label class="wide">${h(label)}<textarea name="${name}">${h(value || '')}</textarea></label>`; }
+
+    function saveLead(event, id) {
+      event.preventDefault();
+      const f = event.target;
+      const data = Object.fromEntries(new FormData(f).entries());
+      const payload = {
+        id: id || nextId(state.leads),
+        createdAt: id ? state.leads.find(l => l.id === id).createdAt : now(),
+        clientName: data.clientName.trim(),
+        phone: data.phone.trim(),
+        telegram: data.telegram.trim(),
+        whatsapp: data.whatsapp.trim(),
+        sourceId: Number(data.sourceId),
+        assignedUserId: data.assignedUserId ? Number(data.assignedUserId) : null,
+        status: data.status,
+        objectType: data.objectType.trim(),
+        district: data.district.trim(),
+        address: data.address.trim(),
+        areaM2: data.areaM2.trim(),
+        budget: data.budget.trim(),
+        timeline: data.timeline.trim(),
+        needText: data.needText.trim(),
+        nextAction: data.nextAction.trim(),
+        nextActionDate: data.nextActionDate,
+        comment: data.comment.trim()
+      };
+      if (id) state.leads = state.leads.map(l => l.id === id ? payload : l);
+      else state.leads.push(payload);
+      saveState();
+      closeDrawer();
+      render();
+    }
+    function deleteLead(id) {
+      if (!confirm('Удалить лид?')) return;
+      state.leads = state.leads.filter(l => l.id !== id);
+      state.touches = state.touches.filter(t => t.leadId !== id);
+      saveState();
+      closeDrawer();
+      render();
+    }
+    function saveTouch(event, leadId) {
+      event.preventDefault();
+      const data = Object.fromEntries(new FormData(event.target).entries());
+      state.touches.push({ id: nextId(state.touches), leadId, userId: user().id, touchAt: now(), type: data.type, result: data.result, nextAction: data.nextAction, nextActionDate: data.nextActionDate, comment: data.comment });
+      const lead = state.leads.find(l => l.id === leadId);
+      if (data.nextAction || data.nextActionDate) {
+        lead.nextAction = data.nextAction;
+        lead.nextActionDate = data.nextActionDate;
+      }
+      saveState();
+      openLead(leadId);
+    }
+
+    function openSourceForm(id) {
+      const s = id ? state.sources.find(x => x.id === id) : {};
+      openDrawer(`
+        <div class="drawer-head"><h2>${id ? 'Редактировать источник' : 'Новый источник'}</h2><button class="ghost" onclick="closeDrawer()">Закрыть</button></div>
+        <form class="form-grid" onsubmit="saveSource(event, ${id || 0})">
+          ${input('name','Название',s.name,true)}${input('type','Тип',s.type)}${input('link','Ссылка',s.link)}${input('foundBy','Кто нашел',s.foundBy)}
+          <label>Можно размещаться<select name="canPost">${['да','нет','через админа','уточнить'].map(v => `<option ${s.canPost===v?'selected':''}>${v}</option>`).join('')}</select></label>
+          <label>Статус<select name="status">${['не проверен','подходит','не подходит','размещено','дал отклик'].map(v => `<option ${s.status===v?'selected':''}>${v}</option>`).join('')}</select></label>
+          ${textarea('offerText','Текст оффера',s.offerText)}${textarea('comment','Комментарий',s.comment)}
+          <div class="wide actions"><button>Сохранить</button></div>
+        </form>
+      `);
+    }
+    function saveSource(event, id) {
+      event.preventDefault();
+      const data = Object.fromEntries(new FormData(event.target).entries());
+      const payload = { id: id || nextId(state.sources), createdAt: id ? state.sources.find(s => s.id === id).createdAt : today(), ...data };
+      if (id) state.sources = state.sources.map(s => s.id === id ? payload : s);
+      else state.sources.push(payload);
+      saveState();
+      closeDrawer();
+      render();
+    }
+
+    function openUserForm() {
+      openDrawer(`
+        <div class="drawer-head"><h2>Новый пользователь</h2><button class="ghost" onclick="closeDrawer()">Закрыть</button></div>
+        <form class="form-grid" onsubmit="saveUser(event)">
+          ${input('username','Логин','',true)}${input('password','Пароль','',true)}${input('fullName','Имя','',true)}
+          <label>Роль<select name="role"><option value="admin">admin</option><option value="sales">sales</option><option value="estimator">estimator</option></select></label>
+          <div class="wide actions"><button>Добавить</button></div>
+        </form>
+      `);
+    }
+    function saveUser(event) {
+      event.preventDefault();
+      const data = Object.fromEntries(new FormData(event.target).entries());
+      state.users.push({ id: nextId(state.users), username: data.username.trim(), password: data.password, fullName: data.fullName.trim(), role: data.role, active: true });
+      saveState();
+      closeDrawer();
+      render();
+    }
+    function openDrawer(html) {
+      const drawer = document.getElementById('drawer');
+      drawer.innerHTML = `<div class="drawer-card">${html}</div>`;
+      drawer.classList.add('open');
+    }
+    function closeDrawer() {
+      const drawer = document.getElementById('drawer');
+      drawer.classList.remove('open');
+      drawer.innerHTML = '';
+    }
+
+    render();
+  </script>
+</body>
+</html>
