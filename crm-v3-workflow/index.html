@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TSK CRM v3 Workflow</title>
-  <meta name="description" content="Рабочий кликабельный прототип CRM v3: менеджер, РОП, замерщик, сметчик, источники, запросы и журнал.">
+  <title>TSK CRM — тестовый контур</title>
+  <meta name="description" content="Тестовый рабочий контур CRM ТСК: лиды, клиенты, партнёры, касания, замеры и сметы.">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@600;700&display=swap&subset=cyrillic');
 
@@ -352,6 +352,10 @@
     }
     .kpi-row:hover { color: var(--blue); }
     .split-line { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+    .login-shell { min-height:100vh; display:grid; place-items:center; padding:24px; background:radial-gradient(circle at 20% 20%,rgba(169,116,46,.2),transparent 28%),var(--dark); }
+    .login-card { width:min(460px,100%); background:var(--paper); border:1px solid rgba(255,255,255,.18); box-shadow:0 28px 70px rgba(0,0,0,.3); padding:30px; border-radius:14px; }
+    .login-card .mark { margin-bottom:18px; } .login-card h1 { margin:0 0 8px; font-family:"IBM Plex Serif",serif; font-size:34px; }
+    .login-card p { color:var(--muted); margin:0 0 22px; } .login-error { min-height:20px; color:var(--red); font-size:13px; font-weight:700; }
 
     @media (max-width: 1080px) {
       .shell { grid-template-columns: 1fr; }
@@ -376,35 +380,33 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    const STORE = 'tsk-crm-v3-workflow-state';
+    const STORE = 'tsk-crm-test-v4-state';
 
     const roles = {
-      admin: { title: 'Игорь · админ', note: 'Видит всё: отдел, сотрудников, источники, запросы, архив и журнал.' },
-      rop: { title: 'РОП', note: 'Видит отдел продаж, менеджеров, контроль и воронку.' },
-      manager: { title: 'Менеджер', note: 'Видит только свои лиды, источники и задачи.' },
+      admin: { title: 'Игорь · админ', note: 'Видит всё, включая закрытые администратором карточки и бонусы партнёров.' },
+      rop: { title: 'РОП', note: 'Видит отдел, всю рабочую базу и контроль касаний; закрытые админом карточки не видит.' },
+      manager: { title: 'МОП', note: 'Видит только свои лиды и партнёров. Карточки после создания не редактирует.' },
       measurer: { title: 'Замерщик', note: 'Видит только переданные ему замеры.' },
       estimator: { title: 'Сметчик', note: 'Видит только переданные в смету замеры.' },
       assistant: { title: 'Ассистент', note: 'Видит операционный контур для помощи руководителю.' }
     };
 
     const employeesSeed = [
-      { id: 1, name: 'Игорь Подольский', role: 'admin', active: true, login: 'igor' },
-      { id: 2, name: 'Елена РОП', role: 'rop', active: true, login: 'rop' },
-      { id: 3, name: 'Николай Рыжих', role: 'manager', active: true, login: 'nikolay' },
-      { id: 4, name: 'Анастасия Майер', role: 'manager', active: true, login: 'anastasia' },
-      { id: 5, name: 'Дмитрий Замер', role: 'measurer', active: true, login: 'zamer' },
-      { id: 6, name: 'Олег Сметчик', role: 'estimator', active: true, login: 'smeta' },
-      { id: 7, name: 'Анна Ассистент', role: 'assistant', active: true, login: 'assist' }
+      { id: 1, name: 'Игорь Подольский', role: 'admin', active: true, login: 'admin', password: 'tsk-admin-26' },
+      { id: 2, name: 'Елена РОП', role: 'rop', active: true, login: 'rop', password: 'tsk-rop-26' },
+      { id: 3, name: 'Николай МОП', role: 'manager', active: true, login: 'mop', password: 'tsk-mop-26' },
+      { id: 5, name: 'Дмитрий Замерщик', role: 'measurer', active: true, login: 'zamer', password: 'tsk-zamer-26' },
+      { id: 6, name: 'Олег Сметчик', role: 'estimator', active: true, login: 'smeta', password: 'tsk-smeta-26' }
     ];
 
-    const sourceTypes = ['Telegram', 'Дизайнеры', 'Партнёры', 'Сарафан', 'Клиенты', 'Холодная база'];
-    const statuses = ['Новый лид', 'Первичный контакт', 'Прогретый', 'Квалификация', 'Прогрев до замера', 'Замер назначен', 'Передан замерщику', 'Замер принят', 'Замер проведен', 'Передан сметчику', 'Смета в работе', 'Смета посчитана', 'Договор', 'Отказ'];
+    const sourceTypes = ['ТГ', 'Инстаграм', 'Соцсети', 'Рекомендация', 'Партнёр', 'Другое'];
+    const statuses = ['Новый лид', 'Касание 1', 'Касание 2', 'Касание 3', 'Прогрев до замера', 'Передан на замер', 'Передан замерщику', 'Замерен', 'Передан на осмечивание', 'Передан сметчику', 'Смета в работе', 'Посчитано', 'Смета посчитана', 'На согласовании расчёта', 'Договор', 'В работе', 'Отказ'];
 
     function seed() {
       const now = new Date();
       const day = (n) => new Date(now.getTime() + n * 86400000).toISOString().slice(0, 10);
       return {
-        role: 'admin',
+        role: 'admin', session: null,
         view: 'dashboard',
         period: 'week',
         filter: null,
@@ -415,6 +417,10 @@
           { id: 3, name: 'Алексей из клуба строителей', type: 'Партнёры', ownerId: 1, link: 'https://t.me/igorpodolskyi_tsk', bonus: true },
           { id: 4, name: 'Рекомендация от клиента Новослободская', type: 'Сарафан', ownerId: 3, link: '', bonus: false },
           { id: 5, name: 'Холодная база дизайнеров', type: 'Холодная база', ownerId: 4, link: '', bonus: false }
+        ],
+        partners: [
+          { id: 1, name: 'Мария Громова', type: 'Дизайнеры', phone: '+7 *** 12-43', telegram: '@maria_design', ownerId: 3, status: 'Прогрев на встречу', nextAction: 'Подтвердить созвон', nextDate: day(1), notes: 'Ведёт квартиры бизнес-класса.', bonus: 'только админ' },
+          { id: 2, name: 'ЖК Сердце столицы', type: 'ЖК', phone: '', telegram: '', ownerId: 3, status: 'Касание 2', nextAction: 'Запросить условия размещения', nextDate: day(2), notes: 'Канал для лидов.', bonus: 'только админ' }
         ],
         leads: [
           { id: 1, client: 'Петрова Мария', phone: '+7 *** 41-22', object: 'Квартира 94 м2, дизайнерский проект', managerId: 3, measurerId: 5, estimatorId: 6, sourceId: 2, status: 'Смета посчитана', nextAction: 'Дожим после сметы', nextDate: day(-1), amountPre: 2700000, amountFinal: 2480000, archived: false, createdAt: day(-18), updatedAt: day(-1), notes: 'Клиенту важны сроки и спокойная реализация проекта.' },
@@ -516,10 +522,10 @@
     }
 
     const navByRole = {
-      admin: ['dashboard', 'summary', 'leads', 'base', 'pipeline', 'measurements', 'estimates', 'sources', 'employees', 'knowledge', 'requests', 'archive', 'audit'],
-      rop: ['dashboard', 'summary', 'leads', 'pipeline', 'measurements', 'sources', 'requests', 'audit'],
+      admin: ['dashboard', 'summary', 'leads', 'partners', 'base', 'pipeline', 'measurements', 'estimates', 'sources', 'employees', 'knowledge', 'requests', 'archive', 'audit'],
+      rop: ['dashboard', 'summary', 'leads', 'partners', 'pipeline', 'measurements', 'sources', 'requests', 'audit'],
       assistant: ['dashboard', 'summary', 'leads', 'base', 'pipeline', 'measurements', 'estimates', 'sources', 'knowledge', 'requests', 'audit'],
-      manager: ['dashboard', 'summary', 'leads', 'sources', 'knowledge'],
+      manager: ['dashboard', 'summary', 'leads', 'partners', 'sources', 'knowledge'],
       measurer: ['dashboard', 'measurements', 'knowledge'],
       estimator: ['dashboard', 'estimates', 'knowledge']
     };
@@ -527,6 +533,7 @@
       dashboard: 'Дашборд',
       summary: 'Сводка',
       leads: 'Лиды в работе',
+      partners: 'Партнёры',
       base: 'База лидов',
       pipeline: 'Воронка',
       measurements: 'Замеры',
@@ -556,7 +563,18 @@
     }
     function setPeriod(p) { state.period = p; save(); render(); }
 
+    function renderLogin() {
+      document.getElementById('app').innerHTML = `<div class="login-shell"><form class="login-card" onsubmit="login(event)"><div class="mark">TSK</div><h1>Рабочий контур</h1><p>Тестовая CRM: вход по роли, личная база и журнал действий.</p><label>Логин<input name="login" autocomplete="username" required></label><label style="margin-top:12px">Пароль<input name="password" type="password" autocomplete="current-password" required></label><div class="login-error" id="loginError"></div><button style="width:100%;margin-top:8px">Войти</button></form></div>`;
+    }
+    function login(e) {
+      e.preventDefault(); const f = Object.fromEntries(new FormData(e.target).entries());
+      const u = state.employees.find(x => x.active && x.login === f.login && x.password === f.password);
+      if (!u) { document.getElementById('loginError').textContent = 'Неверный логин или пароль'; return; }
+      state.role = u.role; state.session = u.id; state.view = 'dashboard'; save(); render();
+    }
+    function logout() { state.session = null; save(); closeDrawer(); render(); }
     function render() {
+      if (!state.session) return renderLogin();
       const allowed = navByRole[state.role];
       const app = document.getElementById('app');
       app.innerHTML = `
@@ -567,14 +585,7 @@
               <p>Лид → контакт → замер → смета → контроль. Без лишнего шума.</p>
             </div>
             <nav class="nav">${allowed.map(v => `<button class="${state.view === v ? 'active' : ''}" onclick="setView('${v}')">${navNames[v]}</button>`).join('')}</nav>
-            <div class="role-card">
-              <label>Проверка роли
-                <select onchange="setRole(this.value)">
-                  ${Object.entries(roles).map(([id, r]) => `<option value="${id}" ${state.role === id ? 'selected' : ''}>${r.title}</option>`).join('')}
-                </select>
-              </label>
-              <div class="role-note">${roles[state.role].note}</div>
-            </div>
+            <div class="role-card"><strong>${h(employee(state.session).name)}</strong><div class="role-note">${roles[state.role].note}</div><button class="secondary small" onclick="logout()">Выйти</button></div>
           </aside>
           <main class="content">
             ${topbar()}
@@ -594,6 +605,7 @@
         pipeline: 'Читаемая воронка: общий вид и фильтр по менеджеру.',
         measurements: 'Передача от менеджера к замерщику: передано, принято, замерено.',
         estimates: 'Передача от замера к сметчику: принято в работу, посчитано, суммы.',
+        partners: 'Карточки дизайнеров, ЖК, риелторов, агентств, поставщиков и иных партнёров.',
         sources: 'Источники по типам, владельцам, ссылкам и статистике.',
         employees: 'Найм, увольнение, роли и перераспределение базы.',
         knowledge: 'Материалы компании и частичные ограничения доступа.',
@@ -606,7 +618,8 @@
         <div><div class="eyebrow">${roles[state.role].title}</div><h1 class="title">${title}</h1><p class="subtitle">${subtitles[state.view] || ''}</p></div>
         <div class="actions">
           ${periodNeeded ? periodControl() : ''}
-          ${state.view === 'leads' ? '<button onclick="openLeadForm()">+ Лид</button>' : ''}
+          ${state.view === 'leads' ? '<button onclick="openLeadForm()">+ Новый лид</button>' : ''}
+          ${state.view === 'partners' ? '<button onclick="openPartnerForm()">+ Новый партнёр</button>' : ''}
           ${state.view === 'sources' ? '<button onclick="openSourceForm()">+ Источник</button>' : ''}
           ${state.view === 'employees' && canManageEmployees() ? '<button onclick="openEmployeeForm()">Нанять</button>' : ''}
         </div>
@@ -623,6 +636,7 @@
         dashboard: dashboard(),
         summary: summary(),
         leads: leadsScreen(false),
+        partners: partnersScreen(),
         base: leadsScreen(true),
         pipeline: pipeline(),
         measurements: measurements(),
@@ -738,6 +752,13 @@
       const cls = s.includes('Смет') ? 'blue' : s.includes('Замер') || s.includes('Передан') ? 'gold' : s === 'Отказ' ? 'red' : '';
       return `<span class="badge ${cls}">${h(s)}</span>`;
     }
+    function visiblePartners() {
+      return state.partners.filter(p => canSeeAll() || p.ownerId === currentEmployeeId());
+    }
+    function partnersScreen() {
+      const rows = visiblePartners();
+      return `<section class="panel"><div class="panel-head"><h2>Партнёры</h2><span class="muted">Не таблица ради таблицы: открой карточку и зафиксируй следующее касание.</span></div><div class="panel-body"><div class="cards">${rows.map(p => `<article class="lead-card" onclick="openPartner(${p.id})"><strong>${h(p.name)}</strong><span class="badge gray">${h(p.type)}</span><span>${h(p.status)} · ${h(p.nextAction || 'нет следующего шага')}</span><small>${h(p.nextDate || '')}</small></article>`).join('') || '<div class="empty">Партнёров пока нет.</div>'}</div></div></section>`;
+    }
 
     function pipeline() {
       const stages = ['Новый лид','Первичный контакт','Квалификация','Прогрев до замера','Замер назначен','Смета посчитана'];
@@ -833,6 +854,19 @@
           <section class="panel"><div class="panel-head"><h2>История действий</h2></div><div class="panel-body timeline">${events.map(ev => `<div class="event"><strong>${h(ev.action)}</strong><span>${h(ev.at)} · ${h(employee(ev.employeeId).name)} · ${h(ev.details)}</span></div>`).join('') || '<div class="muted">История пока пустая.</div>'}</div></section>
         </div>`);
     }
+    function openPartner(id) {
+      const p = byId(state.partners, id); if (!p) return;
+      const events = state.audit.filter(a => a.type === 'partner' && a.objectId === id);
+      drawer(`<div class="drawer-head"><div><h2>${h(p.name)}</h2><div class="muted">${h(p.type)} · ${h(p.status)}</div></div><button class="ghost" onclick="closeDrawer()">Закрыть</button></div><div class="drawer-body grid"><section class="panel"><div class="panel-body"><div class="grid three"><div><span class="muted">Телефон</span><br>${h(p.phone || '—')}</div><div><span class="muted">Telegram</span><br>${h(p.telegram || '—')}</div><div><span class="muted">Следующий шаг</span><br>${h(p.nextAction || '—')} · ${h(p.nextDate || '')}</div></div><p>${h(p.notes || '')}</p>${state.role === 'admin' ? `<div class="notice"><strong>Бонус</strong><span>${h(p.bonus || 'не назначен')}</span></div>` : ''}<div class="actions" style="margin-top:12px"><button onclick="partnerTouch(${p.id})">Зафиксировать касание</button>${state.role === 'admin' ? `<button class="secondary" onclick="openPartnerForm(${p.id})">Редактировать</button>` : ''}</div></div></section><section class="panel"><div class="panel-head"><h2>Касания и коммуникации</h2></div><div class="panel-body timeline">${events.map(ev=>`<div class="event"><strong>${h(ev.action)}</strong><span>${h(ev.at)} · ${h(employee(ev.employeeId).name)} · ${h(ev.details)}</span></div>`).join('') || '<div class="muted">Первое касание ещё не зафиксировано.</div>'}</div></section></div>`);
+    }
+    function openPartnerForm(id) {
+      const p = id ? byId(state.partners,id) : {};
+      const types = ['Дизайнеры','ЖК','Риелторы','Агентство','Поставщики','Партнёр иной'];
+      const stages = ['Не подтверждён','Касание 1','Касание 2','Касание 3','Прогрев на созвон/встречу','Партнёрское соглашение','Партнёр активен'];
+      drawer(`<div class="drawer-head"><div><h2>${id?'Карточка партнёра':'Новый партнёр'}</h2><div class="muted">Бонус и выплата видны только администратору.</div></div><button class="ghost" onclick="closeDrawer()">Закрыть</button></div><form class="drawer-body form-grid" onsubmit="savePartner(event,${id||0})"><label>ФИО / компания<input name="name" required value="${h(p.name||'')}"></label><label>Категория<select name="type">${types.map(x=>`<option ${p.type===x?'selected':''}>${x}</option>`).join('')}</select></label><label>Телефон<input name="phone" value="${h(p.phone||'')}"></label><label>Telegram / WhatsApp<input name="telegram" value="${h(p.telegram||'')}"></label><label>Статус<select name="status">${stages.map(x=>`<option ${p.status===x?'selected':''}>${x}</option>`).join('')}</select></label><label>Дата следующего касания<input type="date" name="nextDate" value="${h(p.nextDate||'')}"></label><label class="wide">Следующее действие<input name="nextAction" value="${h(p.nextAction||'')}"></label><label class="wide">Комментарий<textarea name="notes">${h(p.notes||'')}</textarea></label>${state.role==='admin'?`<label>Бонус / выплата<input name="bonus" value="${h(p.bonus||'')}"></label>`:''}<div class="wide actions"><button>Сохранить</button><button type="button" class="secondary" onclick="closeDrawer()">Отмена</button></div></form>`);
+    }
+    function savePartner(e,id) { e.preventDefault(); const data=Object.fromEntries(new FormData(e.target).entries()); if(id){ Object.assign(byId(state.partners,id),data); addLog('partner',id,'Карточка партнёра обновлена',data.name); } else { const nid=nextId(state.partners); state.partners.push({id:nid,...data,ownerId:currentEmployeeId(),bonus:data.bonus||''}); addLog('partner',nid,'Создан партнёр',data.name); } save(); closeDrawer(); render(); toast('Партнёр сохранён'); }
+    function partnerTouch(id) { const p=byId(state.partners,id); addLog('partner',id,'Касание записано',p.name+': комментарий и итог сохранены'); save(); openPartner(id); toast('Касание записано'); }
     function openSource(id) {
       const s = byId(state.sources, id);
       const leads = state.leads.filter(l => l.sourceId === id);
@@ -871,7 +905,11 @@
         <form class="drawer-body form-grid" onsubmit="saveLead(event, ${id || 0})">
           <label>Клиент<input name="client" required value="${h(l.client || '')}"></label>
           <label>Телефон<input name="phone" value="${h(l.phone || '')}"></label>
+          <label>Telegram / WhatsApp<input name="messenger" value="${h(l.messenger || '')}"></label>
+          <label>Instagram<input name="instagram" value="${h(l.instagram || '')}"></label>
           <label class="wide">Объект<input name="object" value="${h(l.object || '')}"></label>
+          <label>Тип источника<select name="sourceType">${sourceTypes.map(t=>`<option ${l.sourceType===t?'selected':''}>${t}</option>`).join('')}</select></label>
+          <label>Канал / кто рекомендовал / партнёр<input name="sourceDetail" value="${h(l.sourceDetail || '')}" placeholder="выбрать или вписать"></label>
           <label>Источник<select name="sourceId">${state.sources.map(s=>`<option value="${s.id}" ${l.sourceId===s.id?'selected':''}>${h(s.name)}</option>`).join('')}</select></label>
           <label>Статус<select name="status">${statuses.map(s=>`<option ${l.status===s?'selected':''}>${s}</option>`).join('')}</select></label>
           <label>Следующий шаг<input name="nextAction" value="${h(l.nextAction || '')}"></label>
@@ -994,7 +1032,11 @@
     }
     function quickTouch(id) {
       const l = byId(state.leads, id);
-      addLog('lead', id, 'Касание записано', l.client + ': следующий контакт уточнен');
+      const result = prompt('Итог касания / комментарий', '') || 'Касание без комментария';
+      const action = prompt('Следующее действие', l.nextAction || '') || l.nextAction;
+      const date = prompt('Дата следующего касания (ГГГГ-ММ-ДД)', l.nextDate || '') || l.nextDate;
+      l.nextAction = action; l.nextDate = date; l.status = l.status === 'Новый лид' ? 'Касание 1' : l.status;
+      addLog('lead', id, 'Касание записано', l.client + ': ' + result);
       save(); render(); openLead(id); toast('Касание записано');
     }
     function archiveLead(id) {
